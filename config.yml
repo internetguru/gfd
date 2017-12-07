@@ -1,0 +1,4 @@
+default:
+  logPath: ./log
+  errLogPath: ./errlog
+
