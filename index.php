@@ -32,10 +32,11 @@ if (!function_exists('getallheaders'))  {
 }
 
 # load secret, SECRET is mandatory
-if (!is_file('SECRET')) {
+$secretPath = __DIR__.'/SECRET';
+if (!is_file($secretPath)) {
   throw new Exception('SECRET file is missing');
 }
-$secret = file_get_contents('SECRET');
+$secret = file_get_contents($secretPath);
 
 # get request headers
 $headers = getallheaders();
