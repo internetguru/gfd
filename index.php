@@ -5,6 +5,17 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+# set error handlers
+set_error_handler(function($severity, $message, $file, $line) {
+  throw new \ErrorException($message, 0, $severity, $file, $line);
+});
+set_exception_handler(function(Exception $e) {
+  header('HTTP/1.1 500 Internal Server Error');
+  echo "Error on line {$e->getLine()}: " . htmlSpecialChars($e->getMessage());
+  die();
+});
+
+# helpers
 if (!function_exists('getallheaders'))  {
   function getallheaders() {
     if (!is_array($_SERVER)) {
@@ -20,14 +31,69 @@ if (!function_exists('getallheaders'))  {
   }
 }
 
+# load secret, SECRET is mandatory
+if (!is_file('SECRET')) {
+  throw new Exception('SECRET file is missing');
+}
+$secret = file_get_contents('SECRET');
+
 # get request headers
 $headers = getallheaders();
 
+# validate X-Hub-Signature
+$rawPost = null;
+if (!isset($headers['X-Hub-Signature'])) {
+  throw new Exception("HTTP header 'X-Hub-Signature' is missing.");
+}
+if (!extension_loaded('hash')) {
+  throw new Exception("Missing 'hash' extension to check the secret code validity.");
+}
+list($algo, $hash) = explode('=', $headers['X-Hub-Signature'], 2);
+if (!in_array($algo, hash_algos(), true)) {
+  throw new Exception("Hash algorithm '$algo' is not supported.");
+}
+$rawPost = file_get_contents('php://input');
+if (!hash_equals($hash, hash_hmac($algo, $rawPost, $secret))) {
+  throw new Exception('Hook secret does not match.');
+}
+
+if (!isset($headers['Content-Type'])) {
+  throw new Exception("Missing HTTP 'Content-Type' header.");
+}
+if (!isset($headers['X-Github-Event'])) {
+  throw new Exception("Missing HTTP 'X-Github-Event' header.");
+}
+
+switch ($headers['Content-Type']) {
+  case 'application/json':
+    $json = $rawPost;
+    break;
+  case 'application/x-www-form-urlencoded':
+    $json = $_POST['payload'];
+    break;
+  default:
+    throw new Exception("Unsupported content type: {$headers['Content-Type']}");
+}
+# Payload structure depends on triggered event
+# https://developer.github.com/v3/activity/events/types/
+$payload = json_decode($json);
+switch (strtolower($headers['X-Github-Event'])) {
+  // case 'ping':
+  //   echo 'pong';
+  //   break;
+  //	case 'push':
+  //		break;
+  //	case 'create':
+  //		break;
+  default:
+    header('HTTP/1.0 404 Not Found');
+    echo "Event:{$headers['X-Github-Event']} Payload:\n";
+    print_r($payload);
+    die();
+}
+
 # load config
 #TODO
-
-print_r($headers);
-die();
 
 # define LOG and ERRLOG path
 define('LOG', "log/{$headers['X-Request-Uuid']}.log");
