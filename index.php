@@ -75,13 +75,12 @@ switch ($headers['Content-Type']) {
     throw new Exception("Unsupported content type: {$headers['Content-Type']}");
 }
 
-$payload = json_decode($json);
 switch (strtolower($headers['X-Github-Event'])) {
   case 'ping':
     echo 'pong';
     break;
   case 'push':
-    runDeploy($headers, $payload);
+    runDeploy($headers, $json);
     break;
   default:
     header('HTTP/1.0 404 Not Found');
@@ -89,7 +88,7 @@ switch (strtolower($headers['X-Github-Event'])) {
     die();
 }
 
-function runDeploy ($headers, $payload) {
+function runDeploy ($headers, $json) {
   # define LOG and ERRLOG path
   define('LOG', __DIR__."/log/{$headers['X-Github-Delivery']}.log");
   define('ERRLOG', __DIR__."/log/{$headers['X-Github-Delivery']}.err");
@@ -106,7 +105,7 @@ function runDeploy ($headers, $payload) {
     $process = proc_open(DEPLOY_SCRIPT, $descriptorspec, $pipes);
     if(!is_resource($process)) exit;
 
-    fwrite($pipes[0], $payload);
+    fwrite($pipes[0], $json);
     fclose($pipes[0]);
 
     $stdout = stream_get_contents($pipes[1]);
