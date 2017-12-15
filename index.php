@@ -91,8 +91,8 @@ switch (strtolower($headers['X-Github-Event'])) {
 
 function runDeploy ($headers, $payload) {
   # define LOG and ERRLOG path
-  define('LOG', __DIR__."/log/{$headers['X-GitHub-Delivery']}.log");
-  define('ERRLOG', __DIR__."/log/{$headers['X-GitHub-Delivery']}.err");
+  define('LOG', __DIR__."/log/{$headers['X-Github-Delivery']}.log");
+  define('ERRLOG', __DIR__."/log/{$headers['X-Github-Delivery']}.err");
   define('DEPLOY_SCRIPT', __DIR__.'/deploy.sh');
   $exit_code = 0;
 
