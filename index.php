@@ -5,15 +5,33 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+if (!function_exists('getallheaders'))  {
+  function getallheaders() {
+    if (!is_array($_SERVER)) {
+      return array();
+    }
+    $headers = array();
+    foreach ($_SERVER as $name => $value) {
+      if (substr($name, 0, 5) == 'HTTP_') {
+        $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+      }
+    }
+    return $headers;
+  }
+}
+
 # get request headers
 $headers = getallheaders();
 
 # load config
+#TODO
 
+print_r($headers);
+die();
 
 # define LOG and ERRLOG path
-define('LOG', "log/${$headers['X-Request-Uuid']}.log");
-define('ERRLOG', "log/${$headers['X-Request-Uuid']}.attempt${$headers['X-Attempt-Number']}.err");
+define('LOG', "log/{$headers['X-Request-Uuid']}.log");
+define('ERRLOG', "log/{$headers['X-Request-Uuid']}.attempt{$headers['X-Attempt-Number']}.err");
 
 $exit_code = 0;
 
