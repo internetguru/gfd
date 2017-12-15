@@ -36,13 +36,12 @@ $secretPath = __DIR__.'/SECRET';
 if (!is_file($secretPath)) {
   throw new Exception('SECRET file is missing');
 }
-$secret = file_get_contents($secretPath);
+$secret = trim(file_get_contents($secretPath));
 
 # get request headers
 $headers = getallheaders();
 
 # validate X-Hub-Signature
-$rawPost = null;
 if (!isset($headers['X-Hub-Signature'])) {
   throw new Exception("HTTP header 'X-Hub-Signature' is missing.");
 }
