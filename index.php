@@ -32,11 +32,11 @@ if (!function_exists('getallheaders'))  {
 }
 
 # load secret, SECRET is mandatory
-$secretPath = __DIR__.'/SECRET';
-if (!is_file($secretPath)) {
+define('SECRET_PATH', __DIR__.'/SECRET');
+if (!is_file(SECRET_PATH)) {
   throw new Exception('SECRET file is missing');
 }
-$secret = trim(file_get_contents($secretPath));
+$secret = trim(file_get_contents(SECRET_PATH));
 
 # get request headers
 $headers = getallheaders();
@@ -57,13 +57,13 @@ if (!hash_equals($hash, hash_hmac($algo, $rawPost, $secret))) {
   throw new Exception('Hook secret does not match.');
 }
 
+# load content
 if (!isset($headers['Content-Type'])) {
   throw new Exception("Missing HTTP 'Content-Type' header.");
 }
 if (!isset($headers['X-Github-Event'])) {
   throw new Exception("Missing HTTP 'X-Github-Event' header.");
 }
-
 switch ($headers['Content-Type']) {
   case 'application/json':
     $json = $rawPost;
@@ -74,78 +74,62 @@ switch ($headers['Content-Type']) {
   default:
     throw new Exception("Unsupported content type: {$headers['Content-Type']}");
 }
-# Payload structure depends on triggered event
-# https://developer.github.com/v3/activity/events/types/
+
 $payload = json_decode($json);
 switch (strtolower($headers['X-Github-Event'])) {
-  // case 'ping':
-  //   echo 'pong';
-  //   break;
-  //	case 'push':
-  //		break;
-  //	case 'create':
-  //		break;
+  case 'ping':
+    echo 'pong';
+    break;
+  case 'push':
+    runDeploy($headers, $payload);
+    break;
   default:
     header('HTTP/1.0 404 Not Found');
-    echo "Event:{$headers['X-Github-Event']} Payload:\n";
-    print_r($payload);
+    echo "Event: {$headers['X-Github-Event']} is not supported\n";
     die();
 }
 
-# load config
-#TODO
+function runDeploy ($headers, $payload) {
+  # define LOG and ERRLOG path
+  define('LOG', "log/{$headers['X-GitHub-Delivery']}.log");
+  define('ERRLOG', "log/{$headers['X-GitHub-Delivery']}.err");
+  define('DEPLOY_SCRIPT', __DIR__.'/deploy.sh');
+  $exit_code = 0;
 
-# define LOG and ERRLOG path
-define('LOG', "log/{$headers['X-Request-Uuid']}.log");
-define('ERRLOG', "log/{$headers['X-Request-Uuid']}.attempt{$headers['X-Attempt-Number']}.err");
+  if(!is_file(LOG)) {
 
-$exit_code = 0;
+    # get process
+    $descriptorspec = array(
+      0 => array('pipe', 'r'),  // stdin is a pipe that the child will read from
+      1 => array('pipe', 'w'),  // stdout is a pipe that the child will write to
+    );
+    $process = proc_open(DEPLOY_SCRIPT, $descriptorspec, $pipes);
+    if(!is_resource($process)) exit;
 
-if(!is_file(LOG)) {
+    fwrite($pipes[0], $payload);
+    fclose($pipes[0]);
 
-  # read input
-  $stdin = file_get_contents('php://input');
-  if(!strlen($stdin)) {
-    echo 'No input';
-    exit;
-  }
+    $stdout = stream_get_contents($pipes[1]);
+    if(strlen($stdout)) file_put_contents(LOG, $stdout);
+    fclose($pipes[1]);
 
-  # get process
-  $descriptorspec = array(
-     0 => array('pipe', 'r'),  // stdin is a pipe that the child will read from
-     1 => array('pipe', 'w'),  // stdout is a pipe that the child will write to
-  );
-  $process = proc_open('/var/local/scripts/updategit', $descriptorspec, $pipes);
-  if(!is_resource($process)) exit;
-
-  fwrite($pipes[0], $stdin);
-  fclose($pipes[0]);
-
-  $stdout = stream_get_contents($pipes[1]);
-  if(strlen($stdout)) file_put_contents(LOG, $stdout);
-  fclose($pipes[1]);
-
-  $status = proc_get_status($process);
-  while ($status['running']) {
-    sleep(1);
     $status = proc_get_status($process);
+    while ($status['running']) {
+      sleep(1);
+      $status = proc_get_status($process);
+    }
+    $exit_code = $status['exitcode'];
+
+    proc_close($process);
+
+  } else {
+    echo "Cached log...\n";
   }
-  $exit_code = $status['exitcode'];
 
-  proc_close($process);
+  echo file_get_contents(LOG);
 
-} else {
-  echo 'Cached...';
-}
-
-if ($exit_code !== 0) {
-  header('HTTP/1.1 500 Internal Server Error');
-  http_response_code(500);
-}
-
-echo "\nExit status: $exit_code\n";
-echo file_get_contents(LOG);
-
-if ($exit_code !== 0) {
-  rename(LOG, ERRLOG);
+  if ($exit_code !== 0) {
+    rename(LOG, ERRLOG);
+    throw new Exception(sprintf('Non zero exit code %s', $exit_code));
+  }
 }
