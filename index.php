@@ -111,7 +111,7 @@ function runDeploy ($headers, $json) {
     fclose($pipes[0]);
 
     $stdout = stream_get_contents($pipes[1]);
-    if(strlen($stdout)) file_put_contents(LOG, $stdout);
+    file_put_contents(LOG, $stdout);
     fclose($pipes[1]);
 
     $status = proc_get_status($process);
