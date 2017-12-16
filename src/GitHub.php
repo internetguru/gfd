@@ -29,6 +29,30 @@ class GitHub extends ImplementationBase {
    * @throws Exception
    */
   public function getEvent () {
-    // TODO: Implement getEvent() method.
+    return Utils::getHeader($this->headers, 'X-Github-Event', true);
+  }
+
+  /**
+   * @return string
+   * @throws Exception
+   */
+  public function getDeliveryId () {
+    return Utils::getHeader($this->headers, 'X-Github-Delivery', true);
+  }
+
+  /**
+   * @throws exception
+   */
+  protected function loadInput () {
+    switch ($this->contentType) {
+      case 'application/json':
+        $this->input = $this->rawInput;
+        return;
+      case 'application/x-www-form-urlencoded':
+        $this->input = $_POST['payload'];
+        break;
+      default:
+        throw new Exception("Unsupported content type {$this->contentType}");
+    }
   }
 }
