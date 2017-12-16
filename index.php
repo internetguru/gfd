@@ -1,63 +1,10 @@
 <?php
 
-# display all errors
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require './src/Deploy.php';
 
-# set error handlers
-set_error_handler(function($severity, $message, $file, $line) {
-  throw new ErrorException($message, 0, $severity, $file, $line);
-});
-set_exception_handler(function(Exception $e) {
-  if (!headers_sent()) {
-    header('HTTP/1.1 500 Internal Server Error');
-  }
-  echo "Error on line {$e->getLine()}: " . htmlSpecialChars($e->getMessage());
-  die();
-});
+$deploy = new Deploy();
 
-# helpers
-if (!function_exists('getallheaders'))  {
-  function getallheaders() {
-    if (!is_array($_SERVER)) {
-      return array();
-    }
-    $headers = array();
-    foreach ($_SERVER as $name => $value) {
-      if (substr($name, 0, 5) == 'HTTP_') {
-        $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-      }
-    }
-    return $headers;
-  }
-}
-
-# load secret, SECRET is mandatory
-define('SECRET_PATH', __DIR__.'/SECRET');
-if (!is_file(SECRET_PATH)) {
-  throw new Exception('SECRET file is missing');
-}
-$secret = trim(file_get_contents(SECRET_PATH));
-
-# get request headers
-$headers = getallheaders();
-
-# validate X-Hub-Signature
-if (!isset($headers['X-Hub-Signature'])) {
-  throw new Exception("HTTP header 'X-Hub-Signature' is missing.");
-}
-if (!extension_loaded('hash')) {
-  throw new Exception("Missing 'hash' extension to check the secret code validity.");
-}
-list($algo, $hash) = explode('=', $headers['X-Hub-Signature'], 2);
-if (!in_array($algo, hash_algos(), true)) {
-  throw new Exception("Hash algorithm '$algo' is not supported.");
-}
-$rawPost = file_get_contents('php://input');
-if (!hash_equals($hash, hash_hmac($algo, $rawPost, $secret))) {
-  throw new Exception('Hook secret does not match.');
-}
+die();
 
 # load content
 if (!isset($headers['Content-Type'])) {
