@@ -88,6 +88,7 @@ abstract class ImplementationBase {
 
     $log = file_get_contents($this->deployScriptLogPath);
     if ($exitCode !== 0) {
+      rename($this->deployScriptLogPath, $this->deployScriptErrLogPath);
       throw new Exception(sprintf("Non zero exit code %s. Script output: \n\n%s:", $exitCode, $log));
     }
     echo $log;
