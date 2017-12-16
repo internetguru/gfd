@@ -28,7 +28,7 @@ class Utils {
    */
   public static function getHeader ($headers, $header, $required=false) {
     if (!isset($headers[$header])) {
-      if ($required) {
+      if (!$required) {
         return '';
       }
       throw new Exception(sprintf("Missing HTTP '%s' header.", $header));

@@ -1,6 +1,6 @@
 <?php
 
-require './src/Deploy.php';
+require_once 'src/Deploy.php';
 
 $deploy = new Deploy();
 

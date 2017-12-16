@@ -30,13 +30,14 @@ class Deploy {
     set_exception_handler(function(Exception $e) {
       if (!headers_sent()) {
         header('HTTP/1.1 500 Internal Server Error');
-      }
-      if ($this->debug) {
-        echo $e;
-        print_r($this->headers);
-        die();
+        header('Content-Type: text/plain');
       }
       echo htmlSpecialChars($e->getMessage());
+      if ($this->debug) {
+        echo "\n---\n";
+        echo "Request Headers:\n";
+        print_r($this->headers);
+      }
       die();
     });
 
@@ -65,10 +66,10 @@ class Deploy {
   private function setImplementation () {
     $ua = Utils::getHeader($this->headers, 'User-Agent');
     switch (true) {
-      case preg_match('/^GitHub-Hookshot/.*/', $ua):
+      case preg_match('/^GitHub-Hookshot\/.*/', $ua):
         require_once ('GitHub.php');
         return new GitHub($this->headers);
-      case preg_match('/^Bitbucket-Webhooks/.*/', $ua):
+      case preg_match('/^Bitbucket-Webhooks\/.*/', $ua):
         require_once ('BitBucket.php');
         return new BitBucket($this->headers);
       default:
