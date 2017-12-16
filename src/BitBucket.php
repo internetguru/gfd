@@ -20,4 +20,19 @@ class BitBucket extends ImplementationBase {
   public function getEvent () {
     // TODO: Implement getEvent() method.
   }
+
+  /**
+   * @return string
+   * @throws Exception
+   */
+  protected function getDeliveryId () {
+    // TODO: Implement getDeliveryId() method.
+  }
+
+  /**
+   * @throws exception
+   */
+  protected function loadInput () {
+    // TODO: Implement loadInput() method.
+  }
 }

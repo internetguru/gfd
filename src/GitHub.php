@@ -41,6 +41,7 @@ class GitHub extends ImplementationBase {
   }
 
   /**
+   * TODO move to ImplementationBase (?)
    * @throws exception
    */
   protected function loadInput () {
