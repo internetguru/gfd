@@ -32,7 +32,7 @@ class Deploy {
         header('HTTP/1.1 500 Internal Server Error');
         header('Content-Type: text/plain');
       }
-      echo htmlSpecialChars($e->getMessage());
+      echo $e->getMessage();
       if ($this->debug) {
         echo "\n---\n";
         echo "Request Headers:\n";
