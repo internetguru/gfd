@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-echo "[$1]"
+cat -
 
 exit 1
