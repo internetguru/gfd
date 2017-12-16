@@ -1,10 +1,9 @@
 <?php
 
 require_once 'Utils.php';
-require_once 'AuthInterface.php';
 require_once 'ImplementationBase.php';
 
-class GitHub extends ImplementationBase implements AuthInterface {
+class GitHub extends ImplementationBase {
 
   /**
    * @param $secret
@@ -23,5 +22,13 @@ class GitHub extends ImplementationBase implements AuthInterface {
     if (!hash_equals($hash, hash_hmac($algo, $this->rawInput, $secret))) {
       throw new Exception('Hook secret does not match.');
     }
+  }
+
+  /**
+   * @return string
+   * @throws Exception
+   */
+  public function getEvent () {
+    // TODO: Implement getEvent() method.
   }
 }

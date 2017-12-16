@@ -43,8 +43,6 @@ class Deploy {
 
     $this->headers = Utils::getRequestHeaders();
     $impl = $this->setImplementation();
-    $secret = $this->getSecret();
-    $impl->auth($secret);
   }
 
   /**
@@ -65,18 +63,19 @@ class Deploy {
    */
   private function setImplementation () {
     $ua = Utils::getHeader($this->headers, 'User-Agent');
+    $secret = $this->getSecret();
     switch (true) {
       case preg_match('/^GitHub-Hookshot\/.*/', $ua):
         require_once ('GitHub.php');
-        return new GitHub($this->headers);
+        return new GitHub($this->headers, $secret);
       case preg_match('/^Bitbucket-Webhooks\/.*/', $ua):
         require_once ('BitBucket.php');
-        return new BitBucket($this->headers);
+        return new BitBucket($this->headers, $secret);
       default:
         # https://gitlab.com/gitlab-org/gitlab-ce/issues/32912
         if (strlen(Utils::getHeader($this->headers, 'X-Gitlab-Event'))) {
           require_once ('GitLab.php');
-          return new GitLab($this->headers);
+          return new GitLab($this->headers, $secret);
         }
     }
     throw new Exception(sprintf('Unsupported User-Agent %s', $ua));

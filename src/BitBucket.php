@@ -1,10 +1,9 @@
 <?php
 
 require_once 'Utils.php';
-require_once 'AuthInterface.php';
 require_once 'ImplementationBase.php';
 
-class BitBucket extends ImplementationBase implements AuthInterface {
+class BitBucket extends ImplementationBase {
 
   /**
    * @param $secret
@@ -12,5 +11,13 @@ class BitBucket extends ImplementationBase implements AuthInterface {
    */
   public function auth ($secret) {
     // TODO: Implement auth() method.
+  }
+
+  /**
+   * @return string
+   * @throws Exception
+   */
+  public function getEvent () {
+    // TODO: Implement getEvent() method.
   }
 }

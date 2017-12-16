@@ -7,12 +7,6 @@ $deploy = new Deploy();
 die();
 
 # load content
-if (!isset($headers['Content-Type'])) {
-  throw new Exception("Missing HTTP 'Content-Type' header.");
-}
-if (!isset($headers['X-Github-Event'])) {
-  throw new Exception("Missing HTTP 'X-Github-Event' header.");
-}
 switch ($headers['Content-Type']) {
   case 'application/json':
     $json = $rawPost;
