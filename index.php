@@ -99,21 +99,24 @@ function runDeploy ($headers, $json) {
 
   if(!is_file(LOG)) {
 
-    # get process
+    # stdin, stdout
     $descriptorspec = array(
-      0 => array('pipe', 'r'),  // stdin is a pipe that the child will read from
-      1 => array('pipe', 'w'),  // stdout is a pipe that the child will write to
+      0 => array('pipe', 'r'),
+      1 => array('pipe', 'w'),
     );
     $process = proc_open(DEPLOY_SCRIPT, $descriptorspec, $pipes);
     if(!is_resource($process)) exit;
 
+    # write json to stdind
     fwrite($pipes[0], $json);
     fclose($pipes[0]);
 
+    # log stdout
     $stdout = stream_get_contents($pipes[1]);
     file_put_contents(LOG, $stdout);
     fclose($pipes[1]);
 
+    # wait to stop
     $status = proc_get_status($process);
     while ($status['running']) {
       sleep(1);
@@ -124,6 +127,7 @@ function runDeploy ($headers, $json) {
     proc_close($process);
 
   } else {
+    # already processed
     echo "Cached log...\n";
   }
 
@@ -131,6 +135,7 @@ function runDeploy ($headers, $json) {
     header('HTTP/1.1 500 Internal Server Error');
   }
 
+  # print script output
   echo file_get_contents(LOG);
 
   if ($exit_code !== 0) {
