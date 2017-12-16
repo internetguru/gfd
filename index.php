@@ -7,10 +7,10 @@ error_reporting(E_ALL);
 
 # set error handlers
 set_error_handler(function($severity, $message, $file, $line) {
-  throw new \ErrorException($message, 0, $severity, $file, $line);
+  throw new ErrorException($message, 0, $severity, $file, $line);
 });
 set_exception_handler(function(Exception $e) {
-  header('HTTP/1.1 500 Internal Server Error');
+  @header('HTTP/1.1 500 Internal Server Error');
   echo "Error on line {$e->getLine()}: " . htmlSpecialChars($e->getMessage());
   die();
 });
@@ -123,6 +123,10 @@ function runDeploy ($headers, $json) {
 
   } else {
     echo "Cached log...\n";
+  }
+
+  if ($exit_code !== 0) {
+    @header('HTTP/1.1 500 Internal Server Error');
   }
 
   echo file_get_contents(LOG);
