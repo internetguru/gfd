@@ -1,9 +1,10 @@
 
 ### Custom ###
 /log/
+/deploy/
 SECRET
 DEBUG
-config.local.yml
+config.yml
 
 # Created by https://www.gitignore.io/api/composer,intellij
 
