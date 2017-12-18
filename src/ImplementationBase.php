@@ -4,6 +4,13 @@ require_once 'Utils.php';
 
 abstract class ImplementationBase {
 
+  const DEFAULT_LOG_PATH = __DIR__.'/../log';
+  const DEFAULT_ERRLOG_PATH = __DIR__.'/../log';
+  const DEFAULT_DEPLOY_ROOT = __DIR__.'/../deploy';
+
+  const CFG = __DIR__.'/../config.yml';
+  const USER_CFG = __DIR__.'/../config.user.yml';
+
   /**
    * @var array
    */
@@ -31,6 +38,10 @@ abstract class ImplementationBase {
   /**
    * @var string
    */
+  protected $deployRoot;
+  /**
+   * @var string
+   */
   protected $deployScriptPath;
   /**
    * @var string
@@ -40,6 +51,14 @@ abstract class ImplementationBase {
    * @var string
    */
   protected $deployScriptErrLogPath;
+  /**
+   * @var string
+   */
+  protected $projectId;
+  /**
+   * @var array|null
+   */
+  protected $projectConfig = null;
 
   /**
    * ImplementationBase constructor.
@@ -50,8 +69,10 @@ abstract class ImplementationBase {
   public function __construct ($headers, $secret) {
     $this->headers = $headers;
     $this->contentType = Utils::getHeader($this->headers, 'Content-Type', true);
+    $this->setProjectId();
     $this->auth($secret);
     $this->loadInput();
+    $this->loadCfg();
     $this->deploy();
   }
 
@@ -72,20 +93,47 @@ abstract class ImplementationBase {
     }
   }
 
+  private function setProjectId () {
+    if (!array_key_exists('projectid', $_GET) || !strlen(trim($_GET['projectid']))) {
+      throw new Exception('projectid GET param is missing or empty');
+    }
+    $this->projectId = trim($_GET['projectid']);
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function loadCfg() {
+    if (!is_file(self::CFG)) {
+      $this->deployScriptLogPath = self::DEFAULT_LOG_PATH."/{$this->projectId}-{$this->deliveryId}.log";
+      $this->deployScriptErrLogPath = self::DEFAULT_ERRLOG_PATH."/{$this->projectId}-{$this->deliveryId}.err";
+      return;
+    }
+    $cfg = yaml_parse_file(self::CFG);
+    if (!array_key_exists($this->projectId, $cfg)) {
+      return;
+    }
+    $this->projectConfig = $cfg[$this->projectId];
+    // TODO load logPath, errLogPath
+  }
+
+  /**
+   * @throws Exception
+   */
   private function runDeployScript () {
     $this->deliveryId = $this->getDeliveryId();
     $this->deployScriptPath = __DIR__.'/../deploy.sh';
-    $this->deployScriptLogPath = __DIR__."/../log/{$this->deliveryId}.log";
-    $this->deployScriptErrLogPath = __DIR__."/../log/{$this->deliveryId}.err";
     $exitCode = 0;
 
     if(!is_file($this->deployScriptLogPath)) {
-      # prepare arguments and run process
+      # prepare descriptors, arguments and run process
       $descriptorspec = array(
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
       );
       $arg = escapeshellarg((new ReflectionClass($this))->getShortName());
+      $cwd =
+      $evn
       $process = proc_open($this->deployScriptPath." $arg", $descriptorspec, $pipes);
       if(!is_resource($process)) exit;
 

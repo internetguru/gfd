@@ -3,11 +3,22 @@
 shopt -s extglob
 shopt -s nocasematch
 
+: ${GFD_MASTER:=master}
+: ${GFD_DEVELOP:=dev}
+: ${GFD_RELEASE:=release}
+: ${GFD_HOTFIXPREFIX:=hotfix-}
+
+: ${GFD_HOOKDIR:=hooks}
+: ${GFD_DEPLOYROOT:=deploy}
+
+: ${GFD_MULTISTABLES:=false}
+
+##
+# stdin  hook json data
+# $1  implementation name (e.g. GitHub)
 main () {
-  local input
-  input="$(cat -)"
   echo "$1"
-  echo "$input"
+  printenv
 }
 
 main "$@"
