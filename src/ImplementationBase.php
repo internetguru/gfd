@@ -70,6 +70,7 @@ abstract class ImplementationBase {
     $this->headers = $headers;
     $this->contentType = Utils::getHeader($this->headers, 'Content-Type', true);
     $this->setProjectId();
+    $this->deliveryId = $this->getDeliveryId();
     $this->auth($secret);
     $this->loadInput();
     $this->loadCfg();
@@ -122,7 +123,6 @@ abstract class ImplementationBase {
    * @throws Exception
    */
   private function runDeployScript () {
-    $this->deliveryId = $this->getDeliveryId();
     $this->deployScriptPath = __DIR__.'/../deploy.sh';
     $exitCode = 0;
 
