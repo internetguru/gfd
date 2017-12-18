@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
-cat -
+shopt -s extglob
+shopt -s nocasematch
 
-exit 0
+main () {
+  local input
+  input="$(cat -)"
+  echo "$1"
+  echo "$input"
+}
+
+main "$@"

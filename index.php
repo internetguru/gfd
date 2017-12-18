@@ -2,4 +2,4 @@
 
 require_once 'src/Deploy.php';
 
-$deploy = new Deploy();
+new Deploy();

@@ -15,32 +15,9 @@ class Deploy {
    * @throws Exception
    */
   public function __construct () {
-    # display all errors
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-
-    # set debug
+    $this->displayErrors();
     $this->debug = is_file(self::DEBUG_PATH);
-
-    # set error handlers
-    set_error_handler(function($severity, $message, $file, $line) {
-      throw new ErrorException($message, 0, $severity, $file, $line);
-    });
-    set_exception_handler(function(Exception $e) {
-      if (!headers_sent()) {
-        header('HTTP/1.1 500 Internal Server Error');
-        header('Content-Type: text/plain');
-      }
-      echo $e->getMessage();
-      if ($this->debug) {
-        echo "\n---\n";
-        echo "Request Headers:\n";
-        print_r($this->headers);
-      }
-      die();
-    });
-
+    $this->setErrorHandlers();
     $this->headers = Utils::getRequestHeaders();
     $impl = $this->setImplementation();
   }
@@ -58,7 +35,7 @@ class Deploy {
   }
 
   /**
-   * @return BitBucket|GitHub|GitLab
+   * @return ImplementationBase
    * @throws Exception
    */
   private function setImplementation () {
@@ -79,5 +56,30 @@ class Deploy {
         }
     }
     throw new Exception(sprintf('Unsupported User-Agent %s', $ua));
+  }
+
+  private function displayErrors () {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+  }
+
+  private function setErrorHandlers () {
+    set_error_handler(function($severity, $message, $file, $line) {
+      throw new ErrorException($message, 0, $severity, $file, $line);
+    });
+    set_exception_handler(function(Exception $e) {
+      if (!headers_sent()) {
+        header('HTTP/1.1 500 Internal Server Error');
+        header('Content-Type: text/plain');
+      }
+      echo $e->getMessage();
+      if ($this->debug) {
+        echo "\n---\n";
+        echo "Request Headers:\n";
+        print_r($this->headers);
+      }
+      die();
+    });
   }
 }

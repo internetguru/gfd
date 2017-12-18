@@ -4,15 +4,41 @@ require_once 'Utils.php';
 
 abstract class ImplementationBase {
 
+  /**
+   * @var array
+   */
   protected $headers;
+  /**
+   * @var string
+   */
   protected $rawInput;
+  /**
+   * @var string
+   */
   protected $input;
+  /**
+   * @var string
+   */
   protected $contentType;
+  /**
+   * @var string
+   */
   protected $event;
+  /**
+   * @var string
+   */
   protected $deliveryId;
-
+  /**
+   * @var string
+   */
   protected $deployScriptPath;
+  /**
+   * @var string
+   */
   protected $deployScriptLogPath;
+  /**
+   * @var string
+   */
   protected $deployScriptErrLogPath;
 
   /**
@@ -38,7 +64,7 @@ abstract class ImplementationBase {
       case 'ping':
         echo 'pong';
         break;
-      case 'push':
+      case $this->getPushEventName():
         $this->runDeployScript();
         break;
       default:
@@ -54,12 +80,13 @@ abstract class ImplementationBase {
     $exitCode = 0;
 
     if(!is_file($this->deployScriptLogPath)) {
-      # stdin, stdout
+      # prepare arguments and run process
       $descriptorspec = array(
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
       );
-      $process = proc_open($this->deployScriptPath, $descriptorspec, $pipes);
+      $arg = escapeshellarg(get_parent_class());
+      $process = proc_open($this->deployScriptPath." $arg", $descriptorspec, $pipes);
       if(!is_resource($process)) exit;
 
       # write input to stdin
@@ -112,6 +139,11 @@ abstract class ImplementationBase {
    * @throws Exception
    */
   abstract protected function getEvent ();
+
+  /**
+   * @return string
+   */
+  abstract protected function getPushEventName();
 
   /**
    * @return string

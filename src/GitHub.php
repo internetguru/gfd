@@ -5,6 +5,8 @@ require_once 'ImplementationBase.php';
 
 class GitHub extends ImplementationBase {
 
+  const PUSH_EVENT_NAME = 'push';
+
   /**
    * @param $secret
    * @throws Exception
@@ -30,6 +32,13 @@ class GitHub extends ImplementationBase {
    */
   public function getEvent () {
     return Utils::getHeader($this->headers, 'X-Github-Event', true);
+  }
+
+  /**
+   * @return string
+   */
+  protected function getPushEventName () {
+    return self::PUSH_EVENT_NAME;
   }
 
   /**

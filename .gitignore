@@ -3,6 +3,7 @@
 /log/
 SECRET
 DEBUG
+config.local.yml
 
 # Created by https://www.gitignore.io/api/composer,intellij
 

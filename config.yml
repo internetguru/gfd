@@ -1,4 +1,13 @@
+# TODO feature (?)
 default:
-  logPath: ./log
-  errLogPath: ./errlog
-
+  multipleStables: false
+  hookDir: hooks
+  branches:
+    master: master
+    develop: dev
+    release: release
+    hotfixPrefix: hotfix-
+  dirs:
+    log: log
+    errLog: log
+    deployRoot: /var/www/test
