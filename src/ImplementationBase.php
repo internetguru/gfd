@@ -183,8 +183,7 @@ abstract class ImplementationBase {
       return $env;
     }
     foreach ($this->projectConfig['scriptEnv'] as $name => $value) {
-      # true is converted into 1, false into ''
-      if (!strlen($value)) {
+      if ($value === false) {
         $value = 0;
       }
       $env['GFD_'.strtoupper($name)] = $value;
