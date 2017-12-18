@@ -11,6 +11,8 @@ abstract class ImplementationBase {
   const CFG = __DIR__.'/../config.yml';
   const USER_CFG = __DIR__.'/../config.user.yml';
 
+  const PUSH_EVENT_ID = 'push';
+
   /**
    * @var array
    */
@@ -91,7 +93,7 @@ abstract class ImplementationBase {
         echo 'pong';
         break;
       case $this->getPushEventName():
-        $this->runDeployScript();
+        $this->runDeployScript(self::PUSH_EVENT_ID);
         break;
       default:
         throw new Exception(sprintf('Event: %s is not supported', $this->event));
@@ -154,9 +156,10 @@ abstract class ImplementationBase {
   }
 
   /**
+   * @param string $event
    * @throws Exception
    */
-  private function runDeployScript () {
+  private function runDeployScript ($event) {
     $this->deployScriptPath = __DIR__.'/../deploy.sh';
     $exitCode = 0;
 
@@ -166,10 +169,11 @@ abstract class ImplementationBase {
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
       );
-      $arg = escapeshellarg((new ReflectionClass($this))->getShortName());
+      $arg1 = escapeshellarg((new ReflectionClass($this))->getShortName());
+      $arg2 = escapeshellarg($event);
       $cwd = $this->deployRoot;
       $env = $this->getEnv();
-      $process = proc_open($this->deployScriptPath." $arg", $descriptorspec, $pipes, $cwd, $env);
+      $process = proc_open($this->deployScriptPath." $arg1 $arg2", $descriptorspec, $pipes, $cwd, $env);
       if(!is_resource($process)) exit;
 
       # write input to stdin
