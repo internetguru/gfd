@@ -56,9 +56,9 @@ abstract class ImplementationBase {
    */
   protected $projectId;
   /**
-   * @var array|null
+   * @var array
    */
-  protected $projectConfig = null;
+  protected $projectConfig = [];
 
   /**
    * ImplementationBase constructor.
@@ -105,6 +105,7 @@ abstract class ImplementationBase {
    */
   private function loadCfg() {
     if (!is_file(self::CFG)) {
+      $this->deployRoot = self::DEFAULT_DEPLOY_ROOT;
       $this->deployScriptLogPath = self::DEFAULT_LOG_PATH."/{$this->projectId}-{$this->deliveryId}.log";
       $this->deployScriptErrLogPath = self::DEFAULT_ERRLOG_PATH."/{$this->projectId}-{$this->deliveryId}.err";
       return;
@@ -126,15 +127,15 @@ abstract class ImplementationBase {
     $exitCode = 0;
 
     if(!is_file($this->deployScriptLogPath)) {
-      # prepare descriptors, arguments and run process
+      # prepare descriptors, arguments, cwd, env variables and run process
       $descriptorspec = array(
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
       );
       $arg = escapeshellarg((new ReflectionClass($this))->getShortName());
-      $cwd =
-      $evn
-      $process = proc_open($this->deployScriptPath." $arg", $descriptorspec, $pipes);
+      $cwd = $this->deployRoot;
+      $env = $this->getEnv();
+      $process = proc_open($this->deployScriptPath." $arg", $descriptorspec, $pipes, $cwd, $env);
       if(!is_resource($process)) exit;
 
       # write input to stdin
@@ -167,6 +168,20 @@ abstract class ImplementationBase {
       throw new Exception(sprintf("Non zero exit code %s. Script output: \n\n%s:", $exitCode, $log));
     }
     echo $log;
+  }
+
+  /**
+   * @return array
+   */
+  private function getEnv () {
+    $env = [];
+    if (!array_key_exists('scriptEnv', $this->projectConfig)) {
+      return $env;
+    }
+    foreach ($this->projectConfig['scriptEnv'] as $name => $value) {
+      $env['GFD_'.strtoupper($name)] = $value;
+    }
+    return $env;
   }
 
   /**

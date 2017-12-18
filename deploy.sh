@@ -18,6 +18,7 @@ shopt -s nocasematch
 # $1  implementation name (e.g. GitHub)
 main () {
   echo "$1"
+  pwd
   printenv
 }
 
