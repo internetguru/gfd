@@ -7,11 +7,9 @@ shopt -s nocasematch
 : ${GFD_DEVELOP:=dev}
 : ${GFD_RELEASE:=release}
 : ${GFD_HOTFIXPREFIX:=hotfix-}
-
-: ${GFD_HOOKDIR:=hooks}
-: ${GFD_DEPLOYROOT:=deploy}
-
 : ${GFD_MULTISTABLES:=false}
+
+: ${GFD_HOOKSROOT:=hooks}
 
 ##
 # stdin  hook json data

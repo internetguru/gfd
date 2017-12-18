@@ -4,8 +4,8 @@ require_once 'Utils.php';
 
 abstract class ImplementationBase {
 
-  const DEFAULT_LOG_PATH = __DIR__.'/../log';
-  const DEFAULT_ERRLOG_PATH = __DIR__.'/../log';
+  const DEFAULT_LOG_ROOT = __DIR__.'/../log';
+  const DEFAULT_ERRLOG_ROOT = __DIR__.'/../log';
   const DEFAULT_DEPLOY_ROOT = __DIR__.'/../deploy';
 
   const CFG = __DIR__.'/../config.yml';
@@ -39,6 +39,10 @@ abstract class ImplementationBase {
    * @var string
    */
   protected $deployRoot;
+  /**
+   * @var string
+   */
+  protected $hooksRoot;
   /**
    * @var string
    */
@@ -106,9 +110,11 @@ abstract class ImplementationBase {
    */
   private function loadCfg() {
     # defaults
-    $this->deployRoot = self::DEFAULT_DEPLOY_ROOT;
-    $this->deployScriptLogPath = self::DEFAULT_LOG_PATH."/{$this->projectId}-{$this->deliveryId}.log";
-    $this->deployScriptErrLogPath = self::DEFAULT_ERRLOG_PATH."/{$this->projectId}-{$this->deliveryId}.err";
+    $this->deployRoot = realpath(self::DEFAULT_DEPLOY_ROOT);
+    $logName = "{$this->projectId}-{$this->deliveryId}.log";
+    $this->deployScriptLogPath = self::DEFAULT_LOG_ROOT."/$logName";
+    $errLogName = "{$this->projectId}-{$this->deliveryId}.err";
+    $this->deployScriptErrLogPath = self::DEFAULT_ERRLOG_ROOT."/$errLogName";
     if (!is_file(self::CFG)) {
       return;
     }
@@ -120,7 +126,31 @@ abstract class ImplementationBase {
       return;
     }
     $this->projectConfig = $cfg[$this->projectId];
-    // TODO load logPath, errLogPath
+
+    # load paths
+    if (!array_key_exists('paths', $this->projectConfig)) {
+      return;
+    }
+    $paths = $this->projectConfig['paths'];
+    foreach ($paths as $name => $value) {
+      if (substr($value, 0, 1) !== '/') {
+        throw new Exception('Configuration paths must be absolute');
+      }
+      switch ($name) {
+        case 'log':
+          $this->deployScriptLogPath = "$value/$logName";
+          break;
+        case 'errlog':
+          $this->deployScriptErrLogPath = "$value/$errLogName";
+          break;
+        case 'hooks':
+          $this->hooksRoot = $value;
+          break;
+        case 'deploy':
+          $this->deployRoot = $value;
+          break;
+      }
+    }
   }
 
   /**
@@ -178,7 +208,9 @@ abstract class ImplementationBase {
    * @return array
    */
   private function getEnv () {
-    $env = [];
+    $env = [
+      'GFD_HOOKSROOT' => $this->hooksRoot,
+    ];
     if (!array_key_exists('scriptEnv', $this->projectConfig)) {
       return $env;
     }
