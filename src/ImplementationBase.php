@@ -105,11 +105,15 @@ abstract class ImplementationBase {
    * @throws Exception
    */
   private function loadCfg() {
+    # defaults
+    $this->deployRoot = self::DEFAULT_DEPLOY_ROOT;
+    $this->deployScriptLogPath = self::DEFAULT_LOG_PATH."/{$this->projectId}-{$this->deliveryId}.log";
+    $this->deployScriptErrLogPath = self::DEFAULT_ERRLOG_PATH."/{$this->projectId}-{$this->deliveryId}.err";
     if (!is_file(self::CFG)) {
-      $this->deployRoot = self::DEFAULT_DEPLOY_ROOT;
-      $this->deployScriptLogPath = self::DEFAULT_LOG_PATH."/{$this->projectId}-{$this->deliveryId}.log";
-      $this->deployScriptErrLogPath = self::DEFAULT_ERRLOG_PATH."/{$this->projectId}-{$this->deliveryId}.err";
       return;
+    }
+    if (!function_exists('yaml_parse_file')) {
+      throw new Exception('PHP yaml extension is not loaded');
     }
     $cfg = yaml_parse_file(self::CFG);
     if (!array_key_exists($this->projectId, $cfg)) {
