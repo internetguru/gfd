@@ -1,0 +1,12 @@
+# [project] is a value of GET project param
+# [project]:
+#  log: log
+#  errLog: log
+#  scriptEnv:
+#    multiStables: false
+#    master: master
+#    develop: dev
+#    release: release
+#    hotfixPrefix: hotfix-
+#    hookDir: hooks
+#    deployRoot: deploy
