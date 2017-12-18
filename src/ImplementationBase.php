@@ -85,7 +85,7 @@ abstract class ImplementationBase {
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
       );
-      $arg = escapeshellarg(get_parent_class());
+      $arg = escapeshellarg((new ReflectionClass($this))->getShortName());
       $process = proc_open($this->deployScriptPath." $arg", $descriptorspec, $pipes);
       if(!is_resource($process)) exit;
 
