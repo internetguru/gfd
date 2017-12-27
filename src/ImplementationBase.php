@@ -169,9 +169,9 @@ abstract class ImplementationBase {
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
       );
-      $arg1 = escapeshellarg((new ReflectionClass($this))->getShortName());
+      $arg1 = escapeshellarg($this->projectId);
       $arg2 = escapeshellarg($event);
-      $arg3 = escapeshellarg($this->projectId);
+      $arg3 = escapeshellarg((new ReflectionClass($this))->getShortName());
       $cwd = $this->deployRoot;
       $env = $this->getEnv();
       $process = proc_open($this->deployScriptPath." $arg1 $arg2 $arg3", $descriptorspec, $pipes, $cwd, $env);
