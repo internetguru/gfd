@@ -13,4 +13,5 @@
 #    developDir: alfa
 #    masterDir: stable
 #    releaseDir: beta
+#    hotfixDir: hotfix
 #    remote: origin

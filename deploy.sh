@@ -11,8 +11,9 @@ set -o errtrace
 : "${GFD_DEVELOPDIR:=alfa}"
 : "${GFD_MASTERDIR:=stable}"
 : "${GFD_RELEASEDIR:=beta}"
+: "${GFD_HOTFIXDIR:=hotfix}"
 : "${GFD_HOTFIXPREFIX:=hotfix}"
-: "${GFD_MULTISTABLES:=false}"
+: "${GFD_MULTISTABLES:=0}"
 : "${GFD_HOOKSROOT:=hooks}"
 : "${GFD_REMOTE:=origin}"
 
@@ -23,26 +24,29 @@ err () {
   echo "$(basename "${0}")[error]: $*" >&2
   return 1
 }
-function git_fetch {
+git_fetch () {
   local out
   out="$(git -C "$GFD_GIT_ROOT" fetch --tags "$GFD_REMOTE" "$1" 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
 }
-function git_checkout {
+git_checkout () {
   local out
   out="$(git -C "$GFD_GIT_ROOT" checkout "$1" 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
 }
-function git_clone {
+git_clone () {
   local out
   out="$(git clone "$1" "$2" 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
+}
+git_branch_exists () {
+  git -C "$GFD_GIT_ROOT" branch -a | grep -q " \(remotes/$GFD_REMOTE/\)\?$1$"
 }
 
 # $1 branch
@@ -64,30 +68,55 @@ updateBranch () {
 # $1 tag
 # $2 clone url
 updateStable () {
-  echo "updateTag $1"
+  local dirname
+  dirname="$GFD_MASTERDIR"
+  if [[ $GFD_MULTISTABLES == 1 ]]; then
+    [[ "$1" =~ v+([0-9]).+([0-9]).+([0-9]) ]] \
+      || err "Tag $1 does not match required format" \
+      || return 1
+    dirname="${1#v}"
+    dirname="${dirname%.*}"
+  fi
+  syncRepo "$dirname" "$1" "$2"
+  # update release iff release does not exists
+  GFD_GIT_ROOT="$dirname"
+  if ! git_branch_exists "$GFD_RELEASE"; then
+    syncRepo "$GFD_RELEASEDIR" "$1" "$2"
+  fi
+  # update hotfix iff hotfix-* does not exists
+  if ! git_branch_exists "$GFD_HOTFIXPREFIX-*"; then
+    syncRepo $GFD_HOTFIXDIR "$1" "$2"
+  fi
 }
 
 # $1 folder name
 # $2 commit or tag
 # $3 clone url
 syncRepo () {
+  local ok
+  ok=" ..done"
   echo "Sync $1 with $2:"
-  # create folder if not exists
+  # clone repository if not exists
   [[ -d "$1" ]] \
-    || git_clone "$3" "$1" \
+    || echo \
+    || echo -n "- cloning $3 into $1"\
+    || git_clone "$3" "$1" >/dev/null \
+    || echo " $ok" \
     || return 1
   # set git root
   GFD_GIT_ROOT="$1"
-  #git_status_empty \
-  #  || return $?
+  # fetch
   echo
-  echo "- fetching $2..."
-  git_fetch "$2" \
+  echo -n "- fetching $2..."
+  git_fetch "$2" >/dev/null \
     || return $?
+  echo " $ok"
+  # checkout
   echo
-  echo "- checkout to $2..."
-  git_checkout "$2" \
+  echo -n "- checkout to $2..."
+  git_checkout "$2">/dev/null \
     || return $?
+  echo " $ok"
 }
 
 # $1 – project id
