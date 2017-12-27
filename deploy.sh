@@ -14,6 +14,7 @@ shopt -s nocasematch
 # stdin – hook json data
 # $1 – implementation name (e.g. GitHub)
 # $2 – event name (e.g. push)
+# $3 – project id
 main () {
 
   # utils
@@ -34,11 +35,20 @@ main () {
     || return 1
   trap "unlock; exit" SIGINT SIGTERM
 
-  # get projectid
-  projectid="$1"
-  [ -n "$projectid" ] \
-    || err "missing projectid argument" \
+  # get implementation name
+  implname="$1"
+  [ -n "$implname" ] \
+    || err "missing implementation name argument" \
     || return 2
+  case "$implname" in
+    GitHub)
+      echo "GitHub"
+      ;;
+    *)
+      err "unsupported implementation $1" \
+      || return 1
+      ;;
+  esac
 
   # get event
   event="$2"
@@ -55,6 +65,11 @@ main () {
       ;;
   esac
 
+  # get projectid
+  projectid="$3"
+  [ -n "$projectid" ] \
+    || err "missing projectid argument" \
+    || return 2
 
 }
 

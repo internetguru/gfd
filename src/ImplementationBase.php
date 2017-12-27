@@ -171,9 +171,10 @@ abstract class ImplementationBase {
       );
       $arg1 = escapeshellarg((new ReflectionClass($this))->getShortName());
       $arg2 = escapeshellarg($event);
+      $arg3 = escapeshellarg($this->projectId);
       $cwd = $this->deployRoot;
       $env = $this->getEnv();
-      $process = proc_open($this->deployScriptPath." $arg1 $arg2", $descriptorspec, $pipes, $cwd, $env);
+      $process = proc_open($this->deployScriptPath." $arg1 $arg2 $arg3", $descriptorspec, $pipes, $cwd, $env);
       if(!is_resource($process)) exit;
 
       # write input to stdin
