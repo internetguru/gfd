@@ -168,6 +168,7 @@ abstract class ImplementationBase {
       $descriptorspec = array(
         0 => array('pipe', 'r'),
         1 => array('pipe', 'w'),
+        2 => array('pipe', 'r'),
       );
       $arg1 = escapeshellarg($this->projectId);
       $arg2 = escapeshellarg($event);
@@ -185,6 +186,11 @@ abstract class ImplementationBase {
       $stdout = stream_get_contents($pipes[1]);
       file_put_contents($this->deployScriptLogPath, $stdout);
       fclose($pipes[1]);
+
+      # log stderr
+      $stdout = stream_get_contents($pipes[2]);
+      file_put_contents($this->deployScriptLogPath, $stdout, FILE_APPEND);
+      fclose($pipes[2]);
 
       # wait until process exits
       $status = proc_get_status($process);

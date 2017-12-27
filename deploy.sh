@@ -26,7 +26,7 @@ github () {
 
   case "$event" in
     push)
-      echo "github push event"
+      echo "github push event for $projectid"
       ;;
     *)
       err "github unsupported event $event" \
@@ -40,9 +40,9 @@ github () {
 # $2 – event name (e.g. push)
 # $3 – implementation name (e.g. GitHub)
 main () {
-  local lock projectid event implname
+  local lock projectid event impl
 
-  # lock project deploy
+  # lock current projectid deploy
   lock="/var/lock/gfd-$projectid.lock"
   unlock () {
     rm -f "$lock"
@@ -65,11 +65,11 @@ main () {
     || return 2
 
   # get implementation name
-  implname="$3"
-  [ -n "$implname" ] \
+  impl="$3"
+  [ -n "$impl" ] \
     || err "missing implementation name argument" \
     || return 2
-  case "$implname" in
+  case "$impl" in
     GitHub)
       github "$projectid" "$event"
       ;;
