@@ -18,10 +18,20 @@ err () {
   return 1
 }
 
+# $1 branch
+updateBranch () {
+  echo "updateBranch $1"
+}
+
+# $1 tag
+updateStable () {
+  echo "updateTag $1"
+}
+
 # $1 – project id
 # $2 – event name
 github () {
-  local projectid event data ref after
+  local projectid event data ref after refname
   projectid="$1"
   event="$2"
   data="$(cat -)"
@@ -30,12 +40,25 @@ github () {
     push)
       ref="$(jq -r '.ref' <<< "$data")"
       after="$(jq -r '.after' <<< "$data")"
-      echo "$ref"
-      echo "$after"
       ;;
     *)
       err "github unsupported event $event" \
-      || return 1
+        || return 1
+      ;;
+  esac
+
+  refname="${ref##*/}"
+
+  case "$ref" in
+    /ref/heads/*)
+      updateBranch "$refname"
+      ;;
+    /ref/tags/*)
+      updateStable "$refname"
+      ;;
+    *)
+      err "unsupported ref format $ref" \
+        || return 1
       ;;
   esac
 }
