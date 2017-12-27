@@ -19,8 +19,9 @@ err () {
 }
 
 # $1 branch
+# $2 commit
 updateBranch () {
-  echo "updateBranch $1"
+  echo "updateBranch $1 $2"
 }
 
 # $1 tag
@@ -50,10 +51,10 @@ github () {
   refname="${ref##*/}"
 
   case "$ref" in
-    /ref/heads/*)
-      updateBranch "$refname"
+    refs/heads/*)
+      updateBranch "$refname" "$after"
       ;;
-    /ref/tags/*)
+    refs/tags/*)
       updateStable "$refname"
       ;;
     *)
