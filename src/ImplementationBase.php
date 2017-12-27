@@ -188,8 +188,8 @@ abstract class ImplementationBase {
       fclose($pipes[1]);
 
       # log stderr
-      $stdout = stream_get_contents($pipes[2]);
-      file_put_contents($this->deployScriptLogPath, $stdout, FILE_APPEND);
+      $stderr = stream_get_contents($pipes[2]);
+      file_put_contents($this->deployScriptLogPath, $stderr, FILE_APPEND);
       fclose($pipes[2]);
 
       # wait until process exits

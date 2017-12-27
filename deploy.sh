@@ -17,6 +17,7 @@ err () {
   return 1
 }
 
+# stdin – hook json data
 # $1 – project id
 # $2 – event name
 github () {
@@ -75,7 +76,7 @@ main () {
     || return 2
   case "$impl" in
     GitHub)
-      github "$projectid" "$event"
+      cat - | github "$projectid" "$event"
       ;;
     *)
       err "unsupported implementation $1" \
