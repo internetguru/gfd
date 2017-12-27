@@ -2,14 +2,15 @@
 
 shopt -s extglob
 shopt -s nocasematch
+set -o errtrace
 
 # env fallback
-: ${GFD_MASTER:=master}
-: ${GFD_DEVELOP:=dev}
-: ${GFD_RELEASE:=release}
-: ${GFD_HOTFIXPREFIX:=hotfix-}
-: ${GFD_MULTISTABLES:=false}
-: ${GFD_HOOKSROOT:=hooks}
+: "${GFD_MASTER:=master}"
+: "${GFD_DEVELOP:=dev}"
+: "${GFD_RELEASE:=release}"
+: "${GFD_HOTFIXPREFIX:=hotfix-}"
+: "${GFD_MULTISTABLES:=false}"
+: "${GFD_HOOKSROOT:=hooks}"
 
 # utils
 err () {
@@ -17,7 +18,6 @@ err () {
   return 1
 }
 
-# stdin – hook json data
 # $1 – project id
 # $2 – event name
 github () {
@@ -28,8 +28,8 @@ github () {
 
   case "$event" in
     push)
-      ref="$(jq '.ref' <<< "$data")"
-      after="$(jq '.after' <<< "$data")"
+      ref="$(jq -r '.ref' <<< "$data")"
+      after="$(jq -r '.after' <<< "$data")"
       echo "$ref"
       echo "$after"
       ;;
@@ -53,16 +53,6 @@ main () {
     || err "missing projectid argument" \
     || return 2
 
-  # lock current projectid deploy
-  lock="/var/lock/gfd-$projectid.lock"
-  unlock () {
-    rm -f "$lock"
-  }
-  lockfile -2 -r 45 "$lock" \
-    || err "Unable to acquire lock" \
-    || return 1
-  trap "unlock; exit" SIGINT SIGTERM
-
   # get event
   event="$2"
   [ -n "$event" ] \
@@ -74,9 +64,23 @@ main () {
   [ -n "$impl" ] \
     || err "missing implementation name argument" \
     || return 2
+
+  # lock current projectid deploy
+  lock="/var/lock/gfd-$projectid.lock"
+  unlock () {
+    echo "unlock $1"
+    rm -f "$1"
+  }
+  lockfile -2 -r 45 "$lock" \
+    || err "Unable to acquire lock" \
+    || return 1
+  #shellcheck disable=SC2064
+  trap "unlock $lock; exit" INT TERM QUIT ERR EXIT
+
+  # call specific implementaiton
   case "$impl" in
     GitHub)
-      cat - | github "$projectid" "$event"
+      github "$projectid" "$event"
       ;;
     *)
       err "unsupported implementation $1" \
@@ -86,3 +90,4 @@ main () {
 }
 
 main "$@"
+
