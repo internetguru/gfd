@@ -42,6 +42,12 @@ github () {
 main () {
   local lock projectid event impl
 
+  # get projectid
+  projectid="$1"
+  [ -n "$projectid" ] \
+    || err "missing projectid argument" \
+    || return 2
+
   # lock current projectid deploy
   lock="/var/lock/gfd-$projectid.lock"
   unlock () {
@@ -51,12 +57,6 @@ main () {
     || err "Unable to acquire lock" \
     || return 1
   trap "unlock; exit" SIGINT SIGTERM
-
-  # get projectid
-  projectid="$1"
-  [ -n "$projectid" ] \
-    || err "missing projectid argument" \
-    || return 2
 
   # get event
   event="$2"
