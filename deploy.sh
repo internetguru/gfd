@@ -20,13 +20,17 @@ err () {
 # $1 – project id
 # $2 – event name
 github () {
-  local projectid event
+  local projectid event data ref after
   projectid="$1"
   event="$2"
+  data="$(cat -)"
 
   case "$event" in
     push)
-      echo "github push event for $projectid"
+      ref="$(jq '.ref' <<< "$data")"
+      after="$(jq '.after' <<< "$data")"
+      echo "$ref"
+      echo "$after"
       ;;
     *)
       err "github unsupported event $event" \
