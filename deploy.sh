@@ -37,34 +37,45 @@ function git_checkout {
     || return 1
   echo "$out"
 }
+function git_clone {
+  local out
+  out="$(git clone "$1" "$2" 2>&1)" \
+    || err "$out" \
+    || return 1
+  echo "$out"
+}
 
 # $1 branch
 # $2 commit
+# $3 clone url
 updateBranch () {
   case "$1" in
-    $GFD_DEVELOP) syncRepo $GFD_DEVELOPDIR "$2" ;;
-    $GFD_RELEASE) syncRepo $GFD_RELEASEDIR "$2" ;;
+    $GFD_DEVELOP) syncRepo $GFD_DEVELOPDIR "$2" "$3" ;;
+    $GFD_RELEASE) syncRepo $GFD_RELEASEDIR "$2" "$3" ;;
     *)
       # get prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
-        $GFD_HOTFIXPREFIX) syncRepo "$1" "$2" ;;
+        $GFD_HOTFIXPREFIX) syncRepo "$1" "$2" "$3" ;;
       esac
       ;;
   esac
 }
 
 # $1 tag
+# $2 clone url
 updateStable () {
   echo "updateTag $1"
 }
 
 # $1 folder name
 # $2 commit or tag
+# $3 clone url
 syncRepo () {
   echo "Sync $1 with $2:"
   # create folder if not exists
-  [[ ! -d "$1" ]] \
-    && { mkdir "$1" || return 1; }
+  [[ -d "$1" ]] \
+    || git_clone "$3" "$1" \
+    || return 1
   # set git root
   GFD_GIT_ROOT="$1"
   #git_status_empty \
@@ -82,7 +93,7 @@ syncRepo () {
 # $1 – project id
 # $2 – event name
 github () {
-  local projectid event data ref after refname
+  local projectid event data ref after refname clone_url
   projectid="$1"
   event="$2"
   data="$(cat -)"
@@ -92,6 +103,7 @@ github () {
     push)
       ref="$(jq -r '.ref' <<< "$data")"
       after="$(jq -r '.after' <<< "$data")"
+      clone_url="$(jq -r '.repository .clone_url' <<< "$data")"
       ;;
     *)
       err "github unsupported event $event" \
@@ -103,10 +115,10 @@ github () {
 
   case "$ref" in
     refs/heads/*)
-      updateBranch "$refname" "$after"
+      updateBranch "$refname" "$after" "$clone_url"
       ;;
     refs/tags/*)
-      updateStable "$refname"
+      updateStable "$refname" "$clone_url"
       ;;
     *)
       err "unsupported ref format $ref" \
