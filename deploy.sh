@@ -8,25 +8,75 @@ set -o errtrace
 : "${GFD_MASTER:=master}"
 : "${GFD_DEVELOP:=dev}"
 : "${GFD_RELEASE:=release}"
-: "${GFD_HOTFIXPREFIX:=hotfix-}"
+: "${GFD_DEVELOPDIR:=alfa}"
+: "${GFD_MASTERDIR:=stable}"
+: "${GFD_RELEASEDIR:=beta}"
+: "${GFD_HOTFIXPREFIX:=hotfix}"
 : "${GFD_MULTISTABLES:=false}"
 : "${GFD_HOOKSROOT:=hooks}"
+: "${GFD_REMOTE:=origin}"
+
+GFD_GIT_ROOT=.
 
 # utils
 err () {
   echo "$(basename "${0}")[error]: $*" >&2
   return 1
 }
+function git_fetch {
+  local out
+  out="$(git -C "$GFD_GIT_ROOT" fetch --tags "$GFD_REMOTE" "$1" 2>&1)" \
+    || err "$out" \
+    || return 1
+  echo "$out"
+}
+function git_checkout {
+  local out
+  out="$(git -C "$GFD_GIT_ROOT" checkout "$1" 2>&1)" \
+    || err "$out" \
+    || return 1
+  echo "$out"
+}
 
 # $1 branch
 # $2 commit
 updateBranch () {
-  echo "updateBranch $1 $2"
+  case "$1" in
+    $GFD_DEVELOP) syncRepo $GFD_DEVELOPDIR "$2" ;;
+    $GFD_RELEASE) syncRepo $GFD_RELEASEDIR "$2" ;;
+    *)
+      # get prefix, e.g. hofix from hotfix-aaa-bbb
+      case "${1%%-*}" in
+        $GFD_HOTFIXPREFIX) syncRepo "$1" "$2" ;;
+      esac
+      ;;
+  esac
 }
 
 # $1 tag
 updateStable () {
   echo "updateTag $1"
+}
+
+# $1 folder name
+# $2 commit or tag
+syncRepo () {
+  echo "Sync $1 with $2:"
+  # create folder if not exists
+  [[ ! -d "$1" ]] \
+    && { mkdir "$1" || return 1; }
+  # set git root
+  GFD_GIT_ROOT="$1"
+  #git_status_empty \
+  #  || return $?
+  echo
+  echo "- fetching $2..."
+  git_fetch "$2" \
+    || return $?
+  echo
+  echo "- checkout to $2..."
+  git_checkout "$2" \
+    || return $?
 }
 
 # $1 – project id
@@ -37,6 +87,7 @@ github () {
   event="$2"
   data="$(cat -)"
 
+  # allow only supported events
   case "$event" in
     push)
       ref="$(jq -r '.ref' <<< "$data")"
@@ -92,7 +143,6 @@ main () {
   # lock current projectid deploy
   lock="/var/lock/gfd-$projectid.lock"
   unlock () {
-    echo "unlock $1"
     rm -f "$1"
   }
   lockfile -2 -r 45 "$lock" \

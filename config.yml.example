@@ -10,3 +10,7 @@
 #    develop: dev
 #    release: release
 #    hotfixPrefix: hotfix-
+#    developDir: alfa
+#    masterDir: stable
+#    releaseDir: beta
+#    remote: origin
