@@ -106,12 +106,11 @@ syncRepo () {
   ok=" ..done"
   echo "Sync $1 with $2:"
   # clone repository iff not exists
-  [[ -d "$1" ]] \
-    || echo \
-    || echo -n "- cloning $3 into $1" \
-    || git_clone "$3" "$1" >/dev/null \
-    || echo " $ok" \
-    || return 1
+  [[ ! -d "$1" ]] \
+    && echo \
+    && echo -n "- cloning $3 into $1" \
+    && { git_clone "$3" "$1" >/dev/null || return $?; } \
+    && echo " $ok" \
   # set git root
   GFD_GIT_ROOT="$1"
   # fetch
