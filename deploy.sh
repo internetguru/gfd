@@ -55,8 +55,8 @@ git_branch_exists () {
 updateBranch () {
   # according to branch..
   case "$1" in
-    $GFD_DEVELOP) syncRepo $GFD_DEVELOPDIR "$2" "$3" ;;
-    $GFD_RELEASE) syncRepo $GFD_RELEASEDIR "$2" "$3" ;;
+    $GFD_DEVELOP) syncRepo "$GFD_DEVELOPDIR" "$2" "$3" ;;
+    $GFD_RELEASE) syncRepo "$GFD_RELEASEDIR" "$2" "$3" ;;
     *)
       # according to prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
@@ -94,7 +94,7 @@ updateStable () {
 
   # update hotfix iff hotfix-* does not exists
   if ! git_branch_exists "$GFD_HOTFIXPREFIX-*"; then
-    syncRepo $GFD_HOTFIXDIR "$1" "$2"
+    syncRepo "$GFD_HOTFIXDIR" "$1" "$2"
   fi
 }
 
@@ -105,10 +105,10 @@ syncRepo () {
   local ok
   ok=" ..done"
   echo "Sync $1 with $2:"
-  # clone repository if not exists
+  # clone repository iff not exists
   [[ -d "$1" ]] \
     || echo \
-    || echo -n "- cloning $3 into $1"\
+    || echo -n "- cloning $3 into $1" \
     || git_clone "$3" "$1" >/dev/null \
     || echo " $ok" \
     || return 1
