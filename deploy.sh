@@ -136,7 +136,8 @@ syncRepo () {
 
   # if $1 exists then $1 is an old commit or tag => return
   git_rev_exists "$2" \
-    && echo "$1 is up-to-date" \
+    && echo "$1 is already up-to-date" \
+    && echo \
     && return 0
 
   # fetch
