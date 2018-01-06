@@ -24,9 +24,9 @@ err () {
   echo "$(basename "${0}")[error]: $*" >&2
   return 1
 }
-git_fetch () {
+git_fetch_all () {
   local out
-  out="$(git -C "$GFD_GIT_ROOT" fetch --tags "$GFD_REMOTE" "$1" 2>&1)" \
+  out="$(git -C "$GFD_GIT_ROOT" fetch --tags --all 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
@@ -53,13 +53,16 @@ git_branch_exists () {
 # $2 commit
 # $3 clone url
 updateBranch () {
+  # according to branch..
   case "$1" in
     $GFD_DEVELOP) syncRepo $GFD_DEVELOPDIR "$2" "$3" ;;
     $GFD_RELEASE) syncRepo $GFD_RELEASEDIR "$2" "$3" ;;
     *)
-      # get prefix, e.g. hofix from hotfix-aaa-bbb
+      # according to prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
         $GFD_HOTFIXPREFIX) syncRepo "$1" "$2" "$3" ;;
+        # by default do nothing
+        *) echo "Nothing to do.." ;;
       esac
       ;;
   esac
@@ -70,6 +73,8 @@ updateBranch () {
 updateStable () {
   local dirname
   dirname="$GFD_MASTERDIR"
+
+  # multiple stables => dirname=major.minor
   if [[ $GFD_MULTISTABLES == 1 ]]; then
     [[ "$1" =~ v+([0-9]).+([0-9]).+([0-9]) ]] \
       || err "Tag $1 does not match required format" \
@@ -77,12 +82,16 @@ updateStable () {
     dirname="${1#v}"
     dirname="${dirname%.*}"
   fi
+
+  # sync..
   syncRepo "$dirname" "$1" "$2"
+
   # update release iff release does not exists
   GFD_GIT_ROOT="$dirname"
   if ! git_branch_exists "$GFD_RELEASE"; then
     syncRepo "$GFD_RELEASEDIR" "$1" "$2"
   fi
+
   # update hotfix iff hotfix-* does not exists
   if ! git_branch_exists "$GFD_HOTFIXPREFIX-*"; then
     syncRepo $GFD_HOTFIXDIR "$1" "$2"
@@ -107,14 +116,14 @@ syncRepo () {
   GFD_GIT_ROOT="$1"
   # fetch
   echo
-  echo -n "- fetching $2..."
-  git_fetch "$2" >/dev/null \
+  echo -n "- fetching..."
+  git_fetch_all >/dev/null \
     || return $?
   echo " $ok"
   # checkout
   echo
   echo -n "- checkout to $2..."
-  git_checkout "$2">/dev/null \
+  git_checkout "$2" >/dev/null \
     || return $?
   echo " $ok"
 }
@@ -205,4 +214,3 @@ main () {
 }
 
 main "$@"
-

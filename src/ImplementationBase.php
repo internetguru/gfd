@@ -165,11 +165,11 @@ abstract class ImplementationBase {
 
     if(!is_file($this->deployScriptLogPath)) {
       # prepare descriptors, arguments, cwd, env variables and run process
-      $descriptorspec = array(
-        0 => array('pipe', 'r'),
-        1 => array('pipe', 'w'),
-        2 => array('pipe', 'r'),
-      );
+      $descriptorspec = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'r'],
+      ];
       $arg1 = escapeshellarg($this->projectId);
       $arg2 = escapeshellarg($event);
       $arg3 = escapeshellarg((new ReflectionClass($this))->getShortName());
