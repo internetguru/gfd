@@ -142,7 +142,8 @@ syncRepo () {
 
   echo "Sync $1 with $2:"
 
-  call_hook "pre-sync"
+  call_hook "pre-sync" \
+    || return $?
 
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
@@ -156,6 +157,9 @@ syncRepo () {
   GIT_ROOT="$1"
 
   if [[ $do_fetch == 1 ]]; then
+    call_hook "pre-fetch" \
+      || return $?
+
     # if $1 exists then $1 is an old commit or tag => return
     git_rev_exists "$2" \
       && echo "$1 is already up-to-date" \
@@ -168,7 +172,13 @@ syncRepo () {
     git_fetch_all >/dev/null \
       || return $?
     echo " $ok"
+
+    call_hook "post-fetch" \
+      || return $?
   fi
+
+  call_hook "pre-checkout" \
+    || return $?
 
   # checkout
   echo
@@ -177,6 +187,12 @@ syncRepo () {
     || return $?
   echo " $ok"
   echo
+
+  call_hook "post-checkout" \
+    || return $?
+
+  call_hook "post-sync" \
+    || return $?
 }
 
 # $1 – event name
