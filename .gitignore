@@ -2,7 +2,7 @@
 ### Custom ###
 /log/
 /deploy/
-/hooks/
+hooks/
 SECRET
 DEBUG
 config.yml

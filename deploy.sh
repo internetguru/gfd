@@ -14,7 +14,7 @@ set -o errtrace
 : "${GFD_HOTFIXDIR:=hotfix}"
 : "${GFD_HOTFIXPREFIX:=hotfix}"
 : "${GFD_MULTISTABLES:=0}"
-: "${GFD_HOOKSROOT:=hooks}"
+: "${GFD_HOOKSDIR:=.hooks}"
 : "${GFD_REMOTE:=origin}"
 
 # utils
@@ -54,7 +54,7 @@ git_rev_exists () {
 call_hook () {
   local hookname
 
-  hookname="$HOOKS_PATH/$PROJECT_ID-$1"
+  hookname="$GFD_HOOKSDIR/$PROJECT_ID-$1"
 
   [[ -f "$hookname" ]] \
     || return 0
@@ -215,12 +215,7 @@ github () {
 # $2 – event name (e.g. push)
 # $3 – implementation name (e.g. GitHub)
 main () {
-  local lock event impl PROJECT_ID GIT_ROOT HOOKS_PATH
-
-  # resolve GFD_HOOKSROOT
-  HOOKS_PATH=$(realpath "$GFD_HOOKSROOT" 2>&1 || return $?) \
-    || err "$HOOKS_PATH" \
-    || return $?
+  local lock event impl PROJECT_ID GIT_ROOT
 
   # get projectid
   PROJECT_ID="$1"
