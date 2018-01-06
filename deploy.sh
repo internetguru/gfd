@@ -135,17 +135,29 @@ updateStable () {
 # $1 folder name
 # $2 commit or tag
 syncRepo () {
+  local exit_code
+
+  call_hook "pre-sync" \
+    || return $?
+
+  doSyncRepo "$1" "$2"
+  exit_code=$?
+
+  call_hook "post-sync" \
+    || return $?
+
+  return $exit_code
+}
+
+# $1 folder name
+# $2 commit or tag
+doSyncRepo () {
   local ok do_fetch
 
   ok=" ..done"
   do_fetch=1
 
   echo "Sync $1 with $2:"
-
-  call_hook "pre-sync" \
-    || return $?
-
-  trap  "call_hook post-sync" RETURN
 
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
@@ -163,6 +175,7 @@ syncRepo () {
       || return $?
 
     # if $1 exists then $1 is an old commit or tag => return
+    # TODO check $1 is old commit!
     git_rev_exists "$2" \
       && echo "$1 is already up-to-date" \
       && echo \
