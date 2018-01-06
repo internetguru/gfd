@@ -145,6 +145,8 @@ syncRepo () {
   call_hook "pre-sync" \
     || return $?
 
+  trap  "call_hook post-sync" RETURN
+
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
     && echo \
@@ -189,9 +191,6 @@ syncRepo () {
   echo
 
   call_hook "post-checkout" \
-    || return $?
-
-  call_hook "post-sync" \
     || return $?
 }
 
