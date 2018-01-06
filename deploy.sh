@@ -54,23 +54,22 @@ git_rev_exists () {
 
 # $1 branch
 # $2 commit
-# $3 clone url
 updateBranch () {
   # according to branch..
   case "$1" in
     $GFD_DEVELOP)
-      syncRepo "$GFD_DEVELOPDIR" "$2" "$3" \
+      syncRepo "$GFD_DEVELOPDIR" "$2" \
         || return $?
       ;;
     $GFD_RELEASE)
-      syncRepo "$GFD_RELEASEDIR" "$2" "$3" \
+      syncRepo "$GFD_RELEASEDIR" "$2" \
         || return $?
       ;;
     *)
       # according to prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
         $GFD_HOTFIXPREFIX)
-          syncRepo "$1" "$2" "$3" \
+          syncRepo "$1" "$2" \
             || return $?
           ;;
         # by default do nothing
@@ -81,7 +80,6 @@ updateBranch () {
 }
 
 # $1 tag
-# $2 clone url
 updateStable () {
   local dirname
   dirname="$GFD_MASTERDIR"
@@ -94,29 +92,28 @@ updateStable () {
     dirname="${1#v}"
     dirname="${dirname%.*}"
     # also sync masterdir
-    syncRepo "$GFD_MASTERDIR" "$1" "$2" \
+    syncRepo "$GFD_MASTERDIR" "$1" \
       || return $?
   fi
 
   # sync..
-  syncRepo "$dirname" "$1" "$2" \
+  syncRepo "$dirname" "$1" \
     || return $?
 
   # update release iff release does not exists
   GFD_GIT_ROOT="$dirname"
   git_branch_exists "$GFD_RELEASE" \
-    || syncRepo "$GFD_RELEASEDIR" "$1" "$2" \
+    || syncRepo "$GFD_RELEASEDIR" "$1" \
     || return $?
 
   # update hotfix iff hotfix-* does not exists
   git_branch_exists "$GFD_HOTFIXPREFIX-*" \
-    || syncRepo "$GFD_HOTFIXDIR" "$1" "$2" \
+    || syncRepo "$GFD_HOTFIXDIR" "$1" \
     || return $?
 }
 
 # $1 folder name
 # $2 commit or tag
-# $3 clone url
 syncRepo () {
   local ok
   ok=" ..done"
@@ -126,7 +123,7 @@ syncRepo () {
   [[ ! -d "$1" ]] \
     && echo \
     && echo -n "- cloning $3 into $1" \
-    && { git_clone "$3" "$1" >/dev/null || return $?; } \
+    && { git_clone "$clone_url" "$1" >/dev/null || return $?; } \
     && echo " $ok"
 
   # set git root
@@ -179,10 +176,10 @@ github () {
 
   case "$ref" in
     refs/heads/*)
-      updateBranch "$refname" "$after" "$clone_url"
+      updateBranch "$refname" "$after"
       ;;
     refs/tags/*)
-      updateStable "$refname" "$clone_url"
+      updateStable "$refname"
       ;;
     *)
       err "unsupported ref format $ref" \
