@@ -17,8 +17,6 @@ set -o errtrace
 : "${GFD_HOOKSROOT:=hooks}"
 : "${GFD_REMOTE:=origin}"
 
-GFD_GIT_ROOT=.
-
 # utils
 err () {
   echo "$(basename "${0}")[error]: $*" >&2
@@ -26,14 +24,14 @@ err () {
 }
 git_fetch_all () {
   local out
-  out="$(git -C "$GFD_GIT_ROOT" fetch --tags --all 2>&1)" \
+  out="$(git -C "$GIT_ROOT" fetch --tags --all 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
 }
 git_checkout () {
   local out
-  out="$(git -C "$GFD_GIT_ROOT" checkout "$1" 2>&1)" \
+  out="$(git -C "$GIT_ROOT" checkout "$1" 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
@@ -46,10 +44,10 @@ git_clone () {
   echo "$out"
 }
 git_branch_exists () {
-  git -C "$GFD_GIT_ROOT" branch -a | grep -q " \(remotes/$GFD_REMOTE/\)\?$1$"
+  git -C "$GIT_ROOT" branch -a | grep -q " \(remotes/$GFD_REMOTE/\)\?$1$"
 }
 git_rev_exists () {
-  [[ -n "$(git -C "$GFD_GIT_ROOT" rev-parse --verify "$1" 2>/dev/null)" ]]
+  [[ -n "$(git -C "$GIT_ROOT" rev-parse --verify "$1" 2>/dev/null)" ]]
 }
 
 # $1 branch
@@ -101,7 +99,7 @@ updateStable () {
     || return $?
 
   # update release iff release does not exists
-  GFD_GIT_ROOT="$dirname"
+  GIT_ROOT="$dirname"
   git_branch_exists "$GFD_RELEASE" \
     || syncRepo "$GFD_RELEASEDIR" "$1" \
     || return $?
@@ -122,12 +120,12 @@ syncRepo () {
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
     && echo \
-    && echo -n "- cloning $3 into $1" \
-    && { git_clone "$clone_url" "$1" >/dev/null || return $?; } \
+    && echo -n "- cloning $CLONE_URL into $1" \
+    && { git_clone "$CLONE_URL" "$1" >/dev/null || return $?; } \
     && echo " $ok"
 
   # set git root
-  GFD_GIT_ROOT="$1"
+  GIT_ROOT="$1"
 
   # if $1 exists then $1 is an old commit or tag => return
   git_rev_exists "$2" \
@@ -154,7 +152,7 @@ syncRepo () {
 # $1 – project id
 # $2 – event name
 github () {
-  local projectid event data ref after refname clone_url
+  local projectid event data ref after refname CLONE_URL
   projectid="$1"
   event="$2"
   data="$(cat -)"
@@ -164,7 +162,7 @@ github () {
     push)
       ref="$(jq -r '.ref' <<< "$data")"
       after="$(jq -r '.after' <<< "$data")"
-      clone_url="$(jq -r '.repository .clone_url' <<< "$data")"
+      CLONE_URL="$(jq -r '.repository .clone_url' <<< "$data")"
       ;;
     *)
       err "github unsupported event $event" \
@@ -193,7 +191,7 @@ github () {
 # $2 – event name (e.g. push)
 # $3 – implementation name (e.g. GitHub)
 main () {
-  local lock projectid event impl
+  local lock projectid event impl GIT_ROOT
 
   # get projectid
   projectid="$1"
