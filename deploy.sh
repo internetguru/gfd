@@ -145,7 +145,7 @@ syncRepo () {
 
   call_hook "post-sync" \
     || return $?
-  
+
   echo
   return $exit_code
 }
@@ -182,7 +182,6 @@ doSyncRepo () {
       && return 0
 
     # fetch
-    echo
     echo -n "- fetching..."
     git_fetch_all >/dev/null \
       || return $?
@@ -196,7 +195,6 @@ doSyncRepo () {
     || return $?
 
   # checkout
-  echo
   echo -n "- checkout to $2..."
   git_checkout "$2" >/dev/null \
     || return $?
