@@ -162,7 +162,6 @@ doSyncRepo () {
 
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
-    && echo \
     && echo -n "- cloning $CLONE_URL into $1" \
     && { git_clone "$CLONE_URL" "$1" >/dev/null || return $?; } \
     && do_fetch=0 \
