@@ -50,6 +50,23 @@ git_rev_exists () {
   [[ -n "$(git -C "$GIT_ROOT" rev-parse --verify "$1" 2>/dev/null)" ]]
 }
 
+# $1 hookname
+call_hook () {
+  local hookname
+
+  hookname="$GFD_HOOKSROOT/$PROJECT_ID-$1"
+
+  [[ -f "$hookname" ]] \
+    || return 0
+
+  [[ -x "$hookname" ]] \
+    || err "File $hookname is not executable" \
+    || return 1
+
+  # do not extends env and do not modify local variables
+  eval $(source "$hookname")
+}
+
 # $1 branch
 # $2 commit
 updateBranch () {
@@ -120,6 +137,8 @@ syncRepo () {
 
   echo "Sync $1 with $2:"
 
+  call_hook "pre-sync"
+
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
     && echo \
@@ -135,6 +154,7 @@ syncRepo () {
     # if $1 exists then $1 is an old commit or tag => return
     git_rev_exists "$2" \
       && echo "$1 is already up-to-date" \
+      && echo \
       && return 0
 
     # fetch
@@ -154,12 +174,10 @@ syncRepo () {
   echo
 }
 
-# $1 – project id
-# $2 – event name
+# $1 – event name
 github () {
-  local projectid event data ref after refname CLONE_URL
-  projectid="$1"
-  event="$2"
+  local event data ref after refname CLONE_URL
+  event="$1"
   data="$(cat -)"
 
   # allow only supported events
@@ -196,12 +214,12 @@ github () {
 # $2 – event name (e.g. push)
 # $3 – implementation name (e.g. GitHub)
 main () {
-  local lock projectid event impl GIT_ROOT
+  local lock event impl PROJECT_ID GIT_ROOT
 
   # get projectid
-  projectid="$1"
-  [ -n "$projectid" ] \
-    || err "missing projectid argument" \
+  PROJECT_ID="$1"
+  [ -n "$PROJECT_ID" ] \
+    || err "missing project id argument" \
     || return 2
 
   # get event
@@ -217,7 +235,7 @@ main () {
     || return 2
 
   # lock current projectid deploy
-  lock="/var/lock/gfd-$projectid.lock"
+  lock="/var/lock/gfd-$PROJECT_ID.lock"
   unlock () {
     rm -f "$1"
   }
@@ -230,7 +248,7 @@ main () {
   # call specific implementaiton
   case "$impl" in
     GitHub)
-      github "$projectid" "$event"
+      github "$event"
       ;;
     *)
       err "unsupported implementation $1" \
