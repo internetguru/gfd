@@ -63,9 +63,13 @@ call_hook () {
     || err "File $hookname is not executable" \
     || return 1
 
-  # do not extends env and do not modify local variables
+  # call hook in separate enviroment
+  # TODO pass variables
   echo "@ executing $hookname"
-  eval $(source "$hookname")
+  env -i  "$hookname" \
+    || err "$hookname failed" \
+    || return 1
+  echo "@ $hookname done"
 }
 
 # $1 branch
