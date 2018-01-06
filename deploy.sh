@@ -105,26 +105,31 @@ syncRepo () {
   local ok
   ok=" ..done"
   echo "Sync $1 with $2:"
+
   # clone repository iff not exists
   [[ ! -d "$1" ]] \
     && echo \
     && echo -n "- cloning $3 into $1" \
     && { git_clone "$3" "$1" >/dev/null || return $?; } \
-    && echo " $ok" \
+    && echo " $ok"
+
   # set git root
   GFD_GIT_ROOT="$1"
+
   # fetch
   echo
   echo -n "- fetching..."
   git_fetch_all >/dev/null \
     || return $?
   echo " $ok"
+
   # checkout
   echo
   echo -n "- checkout to $2..."
   git_checkout "$2" >/dev/null \
     || return $?
   echo " $ok"
+  echo
 }
 
 # $1 – project id
