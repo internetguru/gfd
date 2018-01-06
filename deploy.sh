@@ -113,8 +113,11 @@ updateStable () {
 # $1 folder name
 # $2 commit or tag
 syncRepo () {
-  local ok
+  local ok do_fetch
+
   ok=" ..done"
+  do_fetch=1
+
   echo "Sync $1 with $2:"
 
   # clone repository iff not exists
@@ -122,23 +125,25 @@ syncRepo () {
     && echo \
     && echo -n "- cloning $CLONE_URL into $1" \
     && { git_clone "$CLONE_URL" "$1" >/dev/null || return $?; } \
+    && do_fetch=0 \
     && echo " $ok"
 
   # set git root
   GIT_ROOT="$1"
 
-  # if $1 exists then $1 is an old commit or tag => return
-  git_rev_exists "$2" \
-    && echo "$1 is already up-to-date" \
-    && echo \
-    && return 0
+  if [[ $do_fetch == 1 ]]; then
+    # if $1 exists then $1 is an old commit or tag => return
+    git_rev_exists "$2" \
+      && echo "$1 is already up-to-date" \
+      && return 0
 
-  # fetch
-  echo
-  echo -n "- fetching..."
-  git_fetch_all >/dev/null \
-    || return $?
-  echo " $ok"
+    # fetch
+    echo
+    echo -n "- fetching..."
+    git_fetch_all >/dev/null \
+      || return $?
+    echo " $ok"
+  fi
 
   # checkout
   echo
