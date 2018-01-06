@@ -104,16 +104,14 @@ updateStable () {
 
   # update release iff release does not exists
   GFD_GIT_ROOT="$dirname"
-  if ! git_branch_exists "$GFD_RELEASE"; then
-    syncRepo "$GFD_RELEASEDIR" "$1" "$2" \
-      || return $?
-  fi
+  git_branch_exists "$GFD_RELEASE" \
+    || syncRepo "$GFD_RELEASEDIR" "$1" "$2" \
+    || return $?
 
   # update hotfix iff hotfix-* does not exists
-  if ! git_branch_exists "$GFD_HOTFIXPREFIX-*"; then
-    syncRepo "$GFD_HOTFIXDIR" "$1" "$2" \
-      || return $?
-  fi
+  git_branch_exists "$GFD_HOTFIXPREFIX-*" \
+    || syncRepo "$GFD_HOTFIXDIR" "$1" "$2" \
+    || return $?
 }
 
 # $1 folder name
