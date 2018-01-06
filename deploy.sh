@@ -145,7 +145,8 @@ syncRepo () {
 
   call_hook "post-sync" \
     || return $?
-
+  
+  echo
   return $exit_code
 }
 
@@ -178,7 +179,6 @@ doSyncRepo () {
     # TODO check $1 is old commit!
     git_rev_exists "$2" \
       && echo "$1 is already up-to-date" \
-      && echo \
       && return 0
 
     # fetch
@@ -201,7 +201,6 @@ doSyncRepo () {
   git_checkout "$2" >/dev/null \
     || return $?
   echo " $ok"
-  echo
 
   call_hook "post-checkout" \
     || return $?
