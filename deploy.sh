@@ -48,6 +48,9 @@ git_clone () {
 git_branch_exists () {
   git -C "$GFD_GIT_ROOT" branch -a | grep -q " \(remotes/$GFD_REMOTE/\)\?$1$"
 }
+git_rev_exists () {
+  [[ -n "$(git -C "$GFD_GIT_ROOT" rev-parse --verify "$1" 2>/dev/null)" ]]
+}
 
 # $1 branch
 # $2 commit
@@ -55,12 +58,21 @@ git_branch_exists () {
 updateBranch () {
   # according to branch..
   case "$1" in
-    $GFD_DEVELOP) syncRepo "$GFD_DEVELOPDIR" "$2" "$3" ;;
-    $GFD_RELEASE) syncRepo "$GFD_RELEASEDIR" "$2" "$3" ;;
+    $GFD_DEVELOP)
+      syncRepo "$GFD_DEVELOPDIR" "$2" "$3" \
+        || return $?
+      ;;
+    $GFD_RELEASE)
+      syncRepo "$GFD_RELEASEDIR" "$2" "$3" \
+        || return $?
+      ;;
     *)
       # according to prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
-        $GFD_HOTFIXPREFIX) syncRepo "$1" "$2" "$3" ;;
+        $GFD_HOTFIXPREFIX)
+          syncRepo "$1" "$2" "$3" \
+            || return $?
+          ;;
         # by default do nothing
         *) echo "Nothing to do.." ;;
       esac
@@ -81,20 +93,26 @@ updateStable () {
       || return 1
     dirname="${1#v}"
     dirname="${dirname%.*}"
+    # also sync masterdir
+    syncRepo "$GFD_MASTERDIR" "$1" "$2" \
+      || return $?
   fi
 
   # sync..
-  syncRepo "$dirname" "$1" "$2"
+  syncRepo "$dirname" "$1" "$2" \
+    || return $?
 
   # update release iff release does not exists
   GFD_GIT_ROOT="$dirname"
   if ! git_branch_exists "$GFD_RELEASE"; then
-    syncRepo "$GFD_RELEASEDIR" "$1" "$2"
+    syncRepo "$GFD_RELEASEDIR" "$1" "$2" \
+      || return $?
   fi
 
   # update hotfix iff hotfix-* does not exists
   if ! git_branch_exists "$GFD_HOTFIXPREFIX-*"; then
-    syncRepo "$GFD_HOTFIXDIR" "$1" "$2"
+    syncRepo "$GFD_HOTFIXDIR" "$1" "$2" \
+      || return $?
   fi
 }
 
@@ -115,6 +133,11 @@ syncRepo () {
 
   # set git root
   GFD_GIT_ROOT="$1"
+
+  # if $1 exists then $1 is an old commit or tag => return
+  git_rev_exists "$2" \
+    && echo "$1 is up-to-date" \
+    && return 0
 
   # fetch
   echo
