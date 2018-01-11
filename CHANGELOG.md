@@ -4,12 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# Unreleased
-
 ## [Unreleased]
 ### Added
  - Bitbucket support
+ - GitHub support
 
-## Added
-- GitHub support
 [Unreleased]: https://github.com/InternetGuru/gfd/compare/master...dev
