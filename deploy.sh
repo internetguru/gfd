@@ -334,7 +334,7 @@ main () {
     GitHub)
       github "$event"
       ;;
-    BitBucket)
+    Bitbucket)
       bitbucket "$event"
       ;;
     *)

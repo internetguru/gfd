@@ -46,8 +46,8 @@ class Deploy {
         require_once ('GitHub.php');
         return new GitHub($this->headers, $secret);
       case preg_match('/^Bitbucket-Webhooks\/.*/', $ua):
-        require_once ('BitBucket.php');
-        return new BitBucket($this->headers, $secret);
+        require_once ('Bitbucket.php');
+        return new Bitbucket($this->headers, $secret);
       default:
         # https://gitlab.com/gitlab-org/gitlab-ce/issues/32912
         if (strlen(Utils::getHeader($this->headers, 'X-Gitlab-Event'))) {

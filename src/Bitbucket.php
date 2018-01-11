@@ -3,7 +3,7 @@
 require_once 'Utils.php';
 require_once 'ImplementationBase.php';
 
-class BitBucket extends ImplementationBase {
+class Bitbucket extends ImplementationBase {
 
   const PUSH_EVENT_NAME = 'repo:push';
 
