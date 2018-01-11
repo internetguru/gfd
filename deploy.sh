@@ -62,7 +62,7 @@ git_is_new_commit () {
   rev_list="$(git_rev_list)"
   current_pos="$(echo "$rev_list" | grep -n "$current_commit" | cut -d: -f1)"
   tested_pos="$(echo "$rev_list" | grep -n "$tested_commit" | cut -d: -f1)"
-  [[ "$tested_pos" -gt "$current_pos" ]]
+  [[ "$tested_pos" -lt "$current_pos" ]]
 }
 
 # $1 hookname
@@ -188,8 +188,7 @@ doSyncRepo () {
   # $2 is old commit or tag => return
   # TODO parametrize?
   git_is_new_commit "$2" \
-    || err "$1 is already up-to-date" \
-    || return 0
+    || { echo "$1 is already up-to-date" && return 0; }
 
   if [[ $do_fetch == 1 ]]; then
     call_hook "pre-fetch" \
