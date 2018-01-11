@@ -6,5 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # Unreleased
 
+## [Unreleased]
+### Added
+ - Bitbucket support
+
 ## Added
 - GitHub support
+[Unreleased]: https://github.com/InternetGuru/gfd/compare/master...dev
