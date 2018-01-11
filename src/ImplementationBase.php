@@ -169,7 +169,7 @@ abstract class ImplementationBase {
       $descriptorspec = [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
-        2 => ['pipe', 'r'],
+        2 => ['pipe', 'w'],
       ];
       $arg1 = escapeshellarg($this->projectId);
       $arg2 = escapeshellarg($event);
@@ -182,16 +182,24 @@ abstract class ImplementationBase {
       # write input to stdin
       fwrite($pipes[0], $this->input);
       fclose($pipes[0]);
-
-      # log stdout
-      $stdout = stream_get_contents($pipes[1]);
-      file_put_contents($this->deployScriptLogPath, $stdout);
+      
+      # get stdout, stderr
+      $count = 0;
+      $out = "";
+      stream_set_blocking($pipes[2], 0);
+      while (($buf = fgets($pipes[1], 4096))) {
+        $out .= $buf;
+        # read stderr to see if anything goes wrong
+        $err = fread($pipes[2], 4096);
+        if (!empty($err)) {
+          $out .= $err;
+        }
+      }
       fclose($pipes[1]);
-
-      # log stderr
-      $stderr = stream_get_contents($pipes[2]);
-      file_put_contents($this->deployScriptLogPath, $stderr, FILE_APPEND);
       fclose($pipes[2]);
+
+      # write output into log
+      file_put_contents($this->deployScriptLogPath, $out);
 
       # wait until process exits
       $status = proc_get_status($process);
@@ -211,7 +219,7 @@ abstract class ImplementationBase {
     $log = file_get_contents($this->deployScriptLogPath);
     if ($exitCode !== 0) {
       rename($this->deployScriptLogPath, $this->deployScriptErrLogPath);
-      throw new Exception(sprintf("Non zero exit code %s. Script output: \n\n%s:", $exitCode, $log));
+      throw new Exception(sprintf("Non zero exit code %s. Script output: \n%s", $exitCode, $log));
     }
     echo $log;
   }
