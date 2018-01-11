@@ -39,6 +39,6 @@ class BitBucket extends ImplementationBase {
    * @throws Exception
    */
   protected function getDeliveryId () {
-    return Utils::getHeader($this->headers, 'X-Request-UUID', true);
+    return Utils::getHeader($this->headers, 'X-Request-Uuid', true);
   }
 }
