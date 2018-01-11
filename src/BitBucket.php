@@ -5,12 +5,18 @@ require_once 'ImplementationBase.php';
 
 class BitBucket extends ImplementationBase {
 
+  const PUSH_EVENT_NAME = 'repo:push';
+
   /**
+   * https://bitbucket.org/site/master/issues/12195/webhook-hmac-signature-security-issue#comment-29905282
    * @param $secret
    * @throws Exception
    */
   public function auth ($secret) {
-    // TODO: Implement auth() method.
+    $getToken = Utils::getParam('token', true);
+    if (!hash_equals($secret, $getToken)) {
+      throw new Exception('Hook token does not match.');
+    }
   }
 
   /**
@@ -18,7 +24,14 @@ class BitBucket extends ImplementationBase {
    * @throws Exception
    */
   public function getEvent () {
-    // TODO: Implement getEvent() method.
+    return Utils::getHeader($this->headers, 'X-Event-Key', true);
+  }
+
+  /**
+   * @return string
+   */
+  protected function getPushEventName () {
+    return self::PUSH_EVENT_NAME;
   }
 
   /**
@@ -26,13 +39,6 @@ class BitBucket extends ImplementationBase {
    * @throws Exception
    */
   protected function getDeliveryId () {
-    // TODO: Implement getDeliveryId() method.
-  }
-
-  /**
-   * @throws exception
-   */
-  protected function loadInput () {
-    // TODO: Implement loadInput() method.
+    return Utils::getHeader($this->headers, 'X-Request-UUID', true);
   }
 }

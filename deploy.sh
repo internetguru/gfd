@@ -252,6 +252,46 @@ github () {
   esac
 }
 
+# $1 – event name
+bitbucket () {
+  local event data commit results newlinks CLONE_URL
+  local -i index
+  event="$1"
+  data="$(cat -)"
+
+  # allow only supported events
+  case "$event" in
+    push)
+      results=($(echo "$data" | jq -r '.push.changes[].new | .type + ":" + .name'))
+      newlinks=($(echo "$data" | jq -r '.push.changes[].new | .links'))
+      ;;
+    *)
+      err "bitbucket unsupported event $event" \
+        || return 1
+      ;;
+  esac
+
+  # bitbucket can send multiple updates at once
+  index=0
+  for item in "${results[@]}"; do
+    IFS=: read -r type name <<< "$item"
+    CLONE_URL="$(dirname "$(dirname "$(echo "${newlinks[$index]}" | jq -r '.links.html.href')")").git"
+    case "$type" in
+      branch)
+        updateBranch "$name" "$commit"
+        ;;
+      tag)
+        updateStable "$commit"
+        ;;
+      *)
+        err "unsupported type $type" \
+          || return 1
+        ;;
+    esac
+    index++
+  done
+}
+
 # stdin – hook json data
 # $1 – project id
 # $2 – event name (e.g. push)
@@ -292,6 +332,9 @@ main () {
   case "$impl" in
     GitHub)
       github "$event"
+      ;;
+    BitBucket)
+      bitbucket "$event"
       ;;
     *)
       err "unsupported implementation $1" \

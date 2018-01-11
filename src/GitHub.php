@@ -20,7 +20,6 @@ class GitHub extends ImplementationBase {
     if (!in_array($algo, hash_algos(), true)) {
       throw new Exception("Hash algorithm '$algo' is not supported.");
     }
-    $this->loadRawInput();
     if (!hash_equals($hash, hash_hmac($algo, $this->rawInput, $secret))) {
       throw new Exception('Hook secret does not match.');
     }
@@ -47,22 +46,5 @@ class GitHub extends ImplementationBase {
    */
   public function getDeliveryId () {
     return Utils::getHeader($this->headers, 'X-Github-Delivery', true);
-  }
-
-  /**
-   * TODO move to ImplementationBase (?)
-   * @throws exception
-   */
-  protected function loadInput () {
-    switch ($this->contentType) {
-      case 'application/json':
-        $this->input = $this->rawInput;
-        return;
-      case 'application/x-www-form-urlencoded':
-        $this->input = $_POST['payload'];
-        break;
-      default:
-        throw new Exception("Unsupported content type {$this->contentType}");
-    }
   }
 }
