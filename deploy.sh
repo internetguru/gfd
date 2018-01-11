@@ -230,7 +230,7 @@ github () {
     push)
       ref="$(jq -r '.ref' <<< "$data")"
       after="$(jq -r '.after' <<< "$data")"
-      CLONE_URL="$(jq -r '.repository .clone_url' <<< "$data")"
+      CLONE_URL="$(jq -r '.repository .ssh_url' <<< "$data")"
       ;;
     *)
       err "github unsupported event $event" \
@@ -276,7 +276,7 @@ bitbucket () {
   for index in "${!results[@]}"; do
     item="${results[$index]}"
     IFS=: read -r type name <<< "$item"
-    CLONE_URL="$(echo "${changes[$index]}" | jq -r '.new.links.html.href' | grep -o 'https://\([^/]\+/\)\{2\}[^/]\+')"
+    CLONE_URL="git@bitbucket.org:$(echo "${changes[$index]}" | jq -r '.new.links.html.href' | sed -ne 's~https://[^/]\+/\([^/]\+/[^/]\+\).*~\1~p').git"
     commit="$(echo "${changes[$index]}" | jq -r '.new.target.hash')"
     case "$type" in
       branch)
