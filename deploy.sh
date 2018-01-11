@@ -46,8 +46,23 @@ git_clone () {
 git_branch_exists () {
   git -C "$GIT_ROOT" branch -a | grep -q " \(remotes/$GFD_REMOTE/\)\?$1$"
 }
+git_rev_parse () {
+  git -C "$GIT_ROOT" rev-parse "$1"
+}
+git_rev_list () {
+  git -C "$GIT_ROOT" rev-list --all
+}
 git_rev_exists () {
   [[ -n "$(git -C "$GIT_ROOT" rev-parse --verify "$1" 2>/dev/null)" ]]
+}
+git_is_new_commit () {
+  local current_commit tested_commit rev_list current_pos tested_pos
+  current_commit="$(git_rev_parse HEAD)"
+  tested_commit="$(git_rev_parse "$1")"
+  rev_list="$(git_rev_list)"
+  current_pos="$(echo "$rev_list" | grep -n "$current_commit" | cut -d: -f1)"
+  tested_pos="$(echo "$rev_list" | grep -n "$tested_commit" | cut -d: -f1)"
+  [[ "$tested_pos" -gt "$current_pos" ]]
 }
 
 # $1 hookname
@@ -170,15 +185,15 @@ doSyncRepo () {
   # set git root
   GIT_ROOT="$1"
 
+  # $2 is old commit or tag => return
+  # TODO parametrize?
+  git_is_new_commit "$2" \
+    || err "$1 is already up-to-date" \
+    || return 0
+
   if [[ $do_fetch == 1 ]]; then
     call_hook "pre-fetch" \
       || return $?
-
-    # if $1 exists then $1 is an old commit or tag => return
-    # TODO check $1 is old commit!
-    git_rev_exists "$2" \
-      && echo "$1 is already up-to-date" \
-      && return 0
 
     # fetch
     echo -n "- fetching..."
