@@ -242,10 +242,12 @@ github () {
 
   case "$ref" in
     refs/heads/*)
-      updateBranch "$refname" "$after"
+      updateBranch "$refname" "$after" \
+        || return $?
       ;;
     refs/tags/*)
-      updateStable "$refname"
+      updateStable "$refname" \
+        || return $?
       ;;
     *)
       err "unsupported ref format $ref" \
@@ -280,10 +282,12 @@ bitbucket () {
     commit="$(echo "${changes[$index]}" | jq -r '.new.target.hash')"
     case "$type" in
       branch)
-        updateBranch "$name" "$commit"
+        updateBranch "$name" "$commit" \
+          || return $?
         ;;
       tag)
-        updateStable "$name"
+        updateStable "$name" \
+          || return $?
         ;;
       *)
         err "unsupported type $type" \
@@ -332,10 +336,12 @@ main () {
   # call specific implementaiton
   case "$impl" in
     GitHub)
-      github "$event"
+      github "$event" \
+        || return $?
       ;;
     Bitbucket)
-      bitbucket "$event"
+      bitbucket "$event" \
+        || return $?
       ;;
     *)
       err "unsupported implementation $1" \
