@@ -278,6 +278,7 @@ bitbucket () {
   for index in "${!results[@]}"; do
     item="${results[$index]}"
     IFS=: read -r type name <<< "$item"
+    # TODO configurable (https/ssh)
     CLONE_URL="git@bitbucket.org:$(echo "${changes[$index]}" | jq -r '.new.links.html.href' | sed -ne 's~https://[^/]\+/\([^/]\+/[^/]\+\).*~\1~p').git"
     commit="$(echo "${changes[$index]}" | jq -r '.new.target.hash')"
     case "$type" in
