@@ -35,4 +35,14 @@ class Utils {
     }
     return $headers[$header];
   }
+
+  public static function getParam ($param, $required=false) {
+    if (!isset($_GET[$param])) {
+      if (!$required) {
+        return '';
+      }
+      throw new Exception(sprintf("Missing GET '%s' parameter.", $param));
+    }
+    return $_GET[$param];
+  }
 }

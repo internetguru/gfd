@@ -77,6 +77,7 @@ abstract class ImplementationBase {
     $this->contentType = Utils::getHeader($this->headers, 'Content-Type', true);
     $this->setProjectId();
     $this->deliveryId = $this->getDeliveryId();
+    $this->loadRawInput();
     $this->auth($secret);
     $this->loadInput();
     $this->loadCfg();
@@ -235,6 +236,22 @@ abstract class ImplementationBase {
   }
 
   /**
+   * @throws exception
+   */
+  protected function loadInput () {
+    switch ($this->contentType) {
+      case 'application/json':
+        $this->input = $this->rawInput;
+        return;
+      case 'application/x-www-form-urlencoded':
+        $this->input = $_POST['payload'];
+        break;
+      default:
+        throw new Exception("Unsupported content type {$this->contentType}");
+    }
+  }
+
+  /**
    * Load raw input from request body
    */
   protected function loadRawInput () {
@@ -264,8 +281,4 @@ abstract class ImplementationBase {
    */
   abstract protected function getDeliveryId ();
 
-  /**
-   * @throws exception
-   */
-  abstract protected function loadInput ();
 }
