@@ -182,9 +182,8 @@ abstract class ImplementationBase {
       # write input to stdin
       fwrite($pipes[0], $this->input);
       fclose($pipes[0]);
-      
+
       # get stdout, stderr
-      $count = 0;
       $out = "";
       stream_set_blocking($pipes[2], 0);
       while (($buf = fgets($pipes[1], 4096))) {
