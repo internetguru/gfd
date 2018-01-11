@@ -38,7 +38,7 @@ git_checkout () {
 }
 git_clone () {
   local out
-  out="$(git clone "$1" "$2" 2>&1)" \
+  out="$(git clone -n "$1" "$2" 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
@@ -176,19 +176,21 @@ doSyncRepo () {
   echo "Sync $1 with $2:"
 
   # clone repository iff not exists
-  [[ ! -d "$1" ]] \
-    && echo -n "- cloning $CLONE_URL into $1" \
-    && { git_clone "$CLONE_URL" "$1" >/dev/null || return $?; } \
-    && do_fetch=0 \
-    && echo " $ok"
+  if [[ ! -d "$1" ]]; then
+    echo -n "- cloning $CLONE_URL into $1"
+    git_clone "$CLONE_URL" "$1" > /dev/null \
+      || return 1
+    do_fetch=0
+    echo "$ok"
+  fi
 
   # set git root
   GIT_ROOT="$1"
 
   # $2 is old commit or tag => return
-  # TODO parametrize?
-  git_is_new_commit "$2" \
-    || { echo "$1 is already up-to-date" && return 0; }
+  # TODO enable this check and parametrize?
+  # git_is_new_commit "$2" \
+  #   || { echo "$1 is already up-to-date" && return 0; }
 
   if [[ $do_fetch == 1 ]]; then
     call_hook "pre-fetch" \
@@ -198,7 +200,7 @@ doSyncRepo () {
     echo -n "- fetching..."
     git_fetch_all >/dev/null \
       || return $?
-    echo " $ok"
+    echo "$ok"
 
     call_hook "post-fetch" \
       || return $?
@@ -211,7 +213,7 @@ doSyncRepo () {
   echo -n "- checkout to $2..."
   git_checkout "$2" >/dev/null \
     || return $?
-  echo " $ok"
+  echo "$ok"
 
   call_hook "post-checkout" \
     || return $?
@@ -254,8 +256,7 @@ github () {
 
 # $1 – event name
 bitbucket () {
-  local event data commit results newlinks CLONE_URL
-  local -i index
+  local event data commit results changes index CLONE_URL
   event="$1"
   data="$(cat -)"
 
@@ -263,7 +264,7 @@ bitbucket () {
   case "$event" in
     push)
       results=($(echo "$data" | jq -r '.push.changes[].new | .type + ":" + .name'))
-      newlinks=($(echo "$data" | jq -r '.push.changes[].new | .links'))
+      changes=("$(echo "$data" | jq -r '.push.changes[]')")
       ;;
     *)
       err "bitbucket unsupported event $event" \
@@ -272,23 +273,23 @@ bitbucket () {
   esac
 
   # bitbucket can send multiple updates at once
-  index=0
-  for item in "${results[@]}"; do
+  for index in "${!results[@]}"; do
+    item="${results[$index]}"
     IFS=: read -r type name <<< "$item"
-    CLONE_URL="$(dirname "$(dirname "$(echo "${newlinks[$index]}" | jq -r '.links.html.href')")").git"
+    CLONE_URL="$(echo "${changes[$index]}" | jq -r '.new.links.html.href' | grep -o 'https://\([^/]\+/\)\{2\}[^/]\+')"
+    commit="$(echo "${changes[$index]}" | jq -r '.new.target.hash')"
     case "$type" in
       branch)
         updateBranch "$name" "$commit"
         ;;
       tag)
-        updateStable "$commit"
+        updateStable "$name"
         ;;
       *)
         err "unsupported type $type" \
           || return 1
         ;;
     esac
-    index++
   done
 }
 
