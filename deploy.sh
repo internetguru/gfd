@@ -14,7 +14,7 @@ set -o errtrace
 : "${GFD_HOTFIXDIR:=hotfix}"
 : "${GFD_HOTFIXPREFIX:=hotfix}"
 : "${GFD_MULTISTABLES:=0}"
-: "${GFD_HOOKSDIR:=.hooks}"
+: "${GFD_HOOKSROOT:=$(dirname $(readlink -f $0))/hooks}"
 : "${GFD_REMOTE:=origin}"
 
 # utils
@@ -69,7 +69,7 @@ git_is_new_commit () {
 call_hook () {
   local hookname
 
-  hookname="$GFD_HOOKSDIR/$PROJECT_ID-$1"
+  hookname="$GFD_HOOKSROOT/$PROJECT_ID-$1"
 
   [[ -f "$hookname" ]] \
     || return 0

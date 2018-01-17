@@ -3,6 +3,7 @@
 #    log: /var/log/gfd
 #    errLog: /var/log/gfd
 #    deploy: /var/www/deploy
+#    hooks: /var/local/hooks
 #  scriptEnv:
 #    multiStables: false
 #    master: master
@@ -13,5 +14,4 @@
 #    masterDir: stable
 #    releaseDir: beta
 #    hotfixDir: hotfix
-#    hooksDir: .hooks
 #    remote: origin
