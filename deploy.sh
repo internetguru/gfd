@@ -66,6 +66,7 @@ git_is_new_commit () {
 }
 
 # $1 hookname
+# $2 deploydir
 call_hook () {
   local hookname
 
@@ -79,9 +80,8 @@ call_hook () {
     || return 1
 
   # call hook in separate enviroment
-  # TODO pass variables
   echo "@ executing $hookname"
-  env -i  "$hookname" \
+  env -i DEPLOY_ROOT="$(pwd)" DEPLOY_DIR="$2" "$hookname" \
     || err "$hookname failed" \
     || return 1
   echo "@ $hookname done"
@@ -152,13 +152,13 @@ updateStable () {
 syncRepo () {
   local exit_code
 
-  call_hook "pre-sync" \
+  call_hook "pre-sync" "$1" \
     || return $?
 
   doSyncRepo "$1" "$2"
   exit_code=$?
 
-  call_hook "post-sync" \
+  call_hook "post-sync" "$1" \
     || return $?
 
   echo
@@ -193,7 +193,7 @@ doSyncRepo () {
   #   || { echo "$1 is already up-to-date" && return 0; }
 
   if [[ $do_fetch == 1 ]]; then
-    call_hook "pre-fetch" \
+    call_hook "pre-fetch" "$1" \
       || return $?
 
     # fetch
@@ -202,11 +202,11 @@ doSyncRepo () {
       || return $?
     echo "$ok"
 
-    call_hook "post-fetch" \
+    call_hook "post-fetch" "$1" \
       || return $?
   fi
 
-  call_hook "pre-checkout" \
+  call_hook "pre-checkout" "1" \
     || return $?
 
   # checkout
@@ -215,7 +215,7 @@ doSyncRepo () {
     || return $?
   echo "$ok"
 
-  call_hook "post-checkout" \
+  call_hook "post-checkout" "$1" \
     || return $?
 }
 
