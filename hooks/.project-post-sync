@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "- clean non-existing hotfix-* and feature-* directories.."
+shopt -s nullglob
+for d in hotfix-* feature-*; do
+  if ! git -C "$DEPLOY_DIR" show-ref -q "$d"; then
+    echo "removing $d"
+    rm -rf "$d"
+  fi
+done
