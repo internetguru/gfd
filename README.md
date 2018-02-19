@@ -69,7 +69,7 @@ TODO long desc
 1) Set generated secret (file ``SECRET``)
    - Note: Bitbucket [does not support secret header](https://bitbucket.org/site/master/issues/12195/webhook-hmac-signature-security-issue) – as workaround is recommend use https and add your secrect in url e.g. ``https://deploy.example.com?projectid=fancyprojectid&secret=[secret]``
 
-1) Check only on push event trigger
+1) Check only ‘on push event trigger‘
 
 ## Maintainers
 
