@@ -36,7 +36,7 @@ TODO long desc
 
 ## Easy Setup
 
-### 1) Seting up your server
+### 1) Setting up your server
 
 1) Go to ``gfd`` project directory on your server e.g.
 
