@@ -12,7 +12,7 @@ TODO long desc
    - [Gitlab](https://about.gitlab.com/) (not supported yet)
  - [PHP 5.6+](http://php.net/downloads.php)
  - [Bash](https://www.gnu.org/software/bash/)
- - Public domain for webhook
+ - Public domain (for webhook payload)
 
 ## Installation
 
