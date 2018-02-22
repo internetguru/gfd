@@ -1,12 +1,12 @@
 # Git Flow Deploy
 
-> TODO short desc
+> Deploy your git projects with ease – simple setup with minimal configuration 
 
 TODO long desc
 
 ## Requirements
 
- - Git project on one of the following servers
+ - Your git project on one of the following servers
    - [GitHub](https://github.com/)
    - [Bitbucket](https://bitbucket.org/)
    - [Gitlab](https://about.gitlab.com/) (not supported yet)
@@ -16,11 +16,13 @@ TODO long desc
 
 ## Installation
 
-1) Download project
+1) Download GFD into non-public directory
 
    ```
-   git clone https://github.com/InternetGuru/gfd.git /var/www/gfd
+   git clone https://github.com/InternetGuru/gfd.git /var/local/gfd
    ```
+   
+   Tip: GFD must be in PHP allowed script paths (e.g. ``open_basedir = /var/local/gfd``) – for more information see [open_basedir](http://php.net/manual/en/ini.core.php#ini.open-basedir)
    
 1) Create public domain for webhook e.g.
 
@@ -28,20 +30,20 @@ TODO long desc
    mkdir /var/www/domains/deploy.example.com
    ```
    
-1) Create public symlink to project index
+1) Create public symlink leading to GFD index
 
    ```
-   ln -s /var/www/gfd/index.php /var/www/domains/deploy.example.com
+   ln -s /var/local/gfd/index.php /var/www/domains/deploy.example.com
    ```
 
 ## Easy Setup
 
 ### 1) Setting up your server
 
-1) Go to ``gfd`` project directory on your server e.g.
+1) Go to GFD project directory on your server e.g.
 
    ```
-   cd /var/www/gfd
+   cd /var/local/gfd
    ```
 
 1) Create project ``SECRET`` e.g.
@@ -59,6 +61,11 @@ TODO long desc
    ```
 
    Inside ``config.yml`` replace ``[projectid]`` by yours
+   
+1) Optionally create one or more GFD hooks
+
+   Hooks are standalone scripts located in ``hooks`` directory and named according to following pattern ``[projectid]-(pre|post)-(fetch|checkout|sync|)`` e.g. ``fancyprojectid-post-sync``.
+
 
 ### 2) Setting up your project 
 
@@ -66,8 +73,9 @@ TODO long desc
 
 1) Set payload URL e.g ``https://deploy.example.com?projectid=fancyprojectid``
 
-1) Set generated secret (file ``SECRET``)
-   - Note: Bitbucket [does not support secret header](https://bitbucket.org/site/master/issues/12195/webhook-hmac-signature-security-issue) – as workaround is recommend use https and add your secrect in url e.g. ``https://deploy.example.com?projectid=fancyprojectid&secret=[secret]``
+1) Set secret (from file ``SECRET``)
+   
+   Note: Bitbucket [does not support secret header](https://bitbucket.org/site/master/issues/12195/webhook-hmac-signature-security-issue) – as workaround is recommend to use https and add your secret in url e.g. ``https://deploy.example.com?projectid=fancyprojectid&secret=[secret]``
 
 1) Check only ‘on push event trigger‘
 
