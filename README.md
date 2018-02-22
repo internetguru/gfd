@@ -57,7 +57,7 @@ TODO long desc
 1) Create (and edit) project settings
 
    ```
-   cp config.yml{example,}
+   cp config.yml{.example,}
    ```
 
    Inside ``config.yml`` replace ``[projectid]`` by yours
