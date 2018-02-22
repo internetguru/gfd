@@ -1,8 +1,8 @@
-# Git Flow Deploy
+# Git Flow Deployment
 
-> Deploy your git projects with ease – simple setup with minimal configuration 
+> Deploy your projects with ease – simple setup with minimal configuration 
 
-TODO long desc
+This script provides continuous deployment for git projects. It is compliant with git flow model and all inferior models by default. It is simply configurable and supports multiple projects and hooks.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ TODO long desc
    git clone https://github.com/InternetGuru/gfd.git /var/local/gfd
    ```
    
-   Tip: GFD must be in PHP allowed script paths (e.g. ``open_basedir = /var/local/gfd``) – for more information see [open_basedir](http://php.net/manual/en/ini.core.php#ini.open-basedir)
+   Tip: GFD must be in PHP allowed script path (e.g. ``open_basedir = /var/local/gfd``) – for more information see [open_basedir](http://php.net/manual/en/ini.core.php#ini.open-basedir)
    
 1) Create public domain for webhook e.g.
 
@@ -64,7 +64,7 @@ TODO long desc
    
 1) Optionally create one or more GFD hooks
 
-   Hooks are standalone scripts located in ``hooks`` directory and named according to following pattern ``[projectid]-(pre|post)-(fetch|checkout|sync|)`` e.g. ``fancyprojectid-post-sync``.
+   Hooks are standalone scripts located in ``hooks`` directory and named according to following pattern ``[projectid]-(pre|post)-(fetch|checkout|sync)`` e.g. ``fancyprojectid-post-sync``.
 
 
 ### 2) Setting up your project 
@@ -94,7 +94,7 @@ If you find this program useful, please **send a donation** to its developers to
 
 If you’d like to make a donation of any value, please send it to the following PayPal address:
 
-TODO donation link
+[PayPal Donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=V7AZWMLS8QWAY)
 
 Since we aren’t a tax-exempt organization, we can’t offer you a tax deduction. But for all donations over 50 USD, we’d be happy to recognize your contribution on this README file (including manual page) for the next release.
 
