@@ -9,9 +9,9 @@
 #    master: master
 #    develop: dev
 #    release: release
+#    featurePrefix: feature-
 #    hotfixPrefix: hotfix-
 #    developDir: alfa
 #    masterDir: stable
 #    releaseDir: beta
-#    hotfixDir: hotfix
 #    remote: origin
