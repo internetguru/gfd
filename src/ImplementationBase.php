@@ -7,10 +7,7 @@ abstract class ImplementationBase {
   const DEFAULT_LOG_ROOT = __DIR__.'/../log';
   const DEFAULT_ERRLOG_ROOT = __DIR__.'/../log';
   const DEFAULT_DEPLOY_ROOT = __DIR__.'/../deploy';
-
   const CFG = __DIR__.'/../config.yml';
-  const USER_CFG = __DIR__.'/../config.user.yml';
-
   const PUSH_EVENT_ID = 'push';
 
   /**

@@ -1,19 +1,18 @@
 # [projectid]:
-#   paths:
-#     log: /var/log/gfd
-#     errLog: /var/log/gfd
-#     deploy: /var/www/deploy
-#     hooks: /var/local/hooks
-#   scriptEnv:
-#     multiStables: false
-#     master: master
-#     develop: dev
-#     release: release
-#     hotfixPrefix: hotfix-
-#     developDir: alfa
-#     masterDir: stable
-#     releaseDir: beta
-#     hotfixDir: hotfix
-#     remote: origin
-# [anotherprojectid]:
-# ...
+#  paths:
+#    log: /var/log/gfd
+#    errLog: /var/log/gfd
+#    deploy: /var/www/deploy
+#    hooks: /var/local/hooks
+#  scriptEnv:
+#    multiStables: false
+#    master: master
+#    develop: dev
+#    release: release
+#    featurePrefix: feature-
+#    hotfixPrefix: hotfix-
+#    developDir: alfa
+#    masterDir: stable
+#    releaseDir: beta
+#    remote: origin
+

@@ -11,7 +11,7 @@ set -o errtrace
 : "${GFD_DEVELOPDIR:=alfa}"
 : "${GFD_MASTERDIR:=stable}"
 : "${GFD_RELEASEDIR:=beta}"
-: "${GFD_HOTFIXDIR:=hotfix}"
+: "${GFD_FEATUREPREFIX:=feature}"
 : "${GFD_HOTFIXPREFIX:=hotfix}"
 : "${GFD_MULTISTABLES:=0}"
 : "${GFD_HOOKSROOT:=$(dirname $(readlink -f $0))/hooks}"
@@ -103,7 +103,7 @@ updateBranch () {
     *)
       # according to prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
-        $GFD_HOTFIXPREFIX)
+        $GFD_FEATUREPREFIX|$GFD_HOTFIXPREFIX)
           syncRepo "$1" "$2" \
             || return $?
           ;;
@@ -139,11 +139,6 @@ updateStable () {
   GIT_ROOT="$dirname"
   git_branch_exists "$GFD_RELEASE" \
     || syncRepo "$GFD_RELEASEDIR" "$1" \
-    || return $?
-
-  # update hotfix iff hotfix-* does not exists
-  git_branch_exists "$GFD_HOTFIXPREFIX-*" \
-    || syncRepo "$GFD_HOTFIXDIR" "$1" \
     || return $?
 }
 
@@ -352,3 +347,4 @@ main () {
 }
 
 main "$@"
+
