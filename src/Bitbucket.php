@@ -13,9 +13,9 @@ class Bitbucket extends ImplementationBase {
    * @throws Exception
    */
   public function auth ($secret) {
-    $getToken = Utils::getParam('token', true);
+    $getToken = Utils::getParam('secret', true);
     if (!hash_equals($secret, $getToken)) {
-      throw new Exception('Hook token does not match.');
+      throw new Exception('Hook secret does not match.');
     }
   }
 
