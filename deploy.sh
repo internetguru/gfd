@@ -36,7 +36,14 @@ git_checkout () {
     || return 1
   echo "$out"
 }
-git_clone () {
+git_reset () {
+  local out
+  out="$(git -C "$GIT_ROOT" reset --hard "$1" 2>&1)" \
+    || err "$out" \
+    || return 1
+  echo "$out"
+}
+ggit_clone () {
   local out
   out="$(git clone -n "$1" "$2" 2>&1)" \
     || err "$out" \
@@ -98,6 +105,11 @@ updateBranch () {
       ;;
     $GFD_RELEASE)
       syncRepo "$GFD_RELEASEDIR" "$2" \
+        || return $?
+      ;;
+    # support masterdir edit
+    $GFD_MASTER)
+      syncRepo "$GFD_MASTERDIR" "$2" \
         || return $?
       ;;
     *)
@@ -206,7 +218,8 @@ doSyncRepo () {
 
   # checkout
   echo -n "- checkout to $2..."
-  git_checkout "$2" >/dev/null \
+  #git_checkout "$2" >/dev/null \
+  git_reset "$2" >/dev/null \
     || return $?
   echo "$ok"
 
