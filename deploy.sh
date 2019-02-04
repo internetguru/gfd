@@ -29,21 +29,36 @@ git_fetch_all () {
     || return 1
   echo "$out"
 }
+# $1 commit or tag
+git_get_files () {
+  local out
+  out="$(git -C "$GIT_ROOT" diff --oneline --name-only HEAD.."$1" 2>&1)" \
+    || err "$out" \
+    || return 1
+  echo "$out"
+}
 git_checkout () {
   local out
-  out="$(git -C "$GIT_ROOT" checkout "$1" 2>&1)" \
+  out="$(git -C "$GIT_ROOT" checkout "${1:-}" 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
 }
-git_reset () {
+git_pull () {
   local out
-  out="$(git -C "$GIT_ROOT" reset --hard "$1" 2>&1)" \
+  out="$(git -C "$GIT_ROOT" pull 2>&1)" \
     || err "$out" \
     || return 1
   echo "$out"
 }
-ggit_clone () {
+ggit_reset () {
+  local out
+  out="$(git -C "$GIT_ROOT" reset "$1" 2>&1)" \
+    || err "$out" \
+    || return 1
+  echo "$out"
+}
+git_clone () {
   local out
   out="$(git clone -n "$1" "$2" 2>&1)" \
     || err "$out" \
@@ -88,7 +103,11 @@ call_hook () {
 
   # call hook in separate enviroment
   echo "@ executing $hookname"
-  env -i DEPLOY_ROOT="$(pwd)" DEPLOY_DIR="$2" "$hookname" \
+  env -i \
+    DEPLOY_ROOT="$(pwd)" \
+    DEPLOY_DIR="$2" \
+    CHANGED_FILES="$CHANGED_FILES" \
+    "$hookname" \
     || err "$hookname failed" \
     || return 1
   echo "@ $hookname done"
@@ -209,6 +228,8 @@ doSyncRepo () {
       || return $?
     echo "$ok"
 
+    CHANGED_FILES="$(git_get_files "$2")"
+
     call_hook "post-fetch" "$1" \
       || return $?
   fi
@@ -218,9 +239,12 @@ doSyncRepo () {
 
   # checkout
   echo -n "- checkout to $2..."
-  #git_checkout "$2" >/dev/null \
-  git_reset "$2" >/dev/null \
-    || return $?
+  if ! git_pull >/dev/null; then
+    git_checkout "$2" >/dev/null \
+      || return "$?"
+  fi
+  #git_reset "$2" >/dev/null \
+  #  || return $?
   echo "$ok"
 
   call_hook "post-checkout" "$1" \
@@ -311,7 +335,7 @@ bitbucket () {
 # $2 – event name (e.g. push)
 # $3 – implementation name (e.g. GitHub)
 main () {
-  local lock event impl PROJECT_ID GIT_ROOT
+  local lock event impl PROJECT_ID GIT_ROOT CHANGED_FILES
 
   # get projectid
   PROJECT_ID="$1"
