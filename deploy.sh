@@ -239,7 +239,7 @@ doSyncRepo () {
 
   # checkout
   echo -n "- checkout to $2..."
-  if ! git_pull >/dev/null; then
+  if git_is_new_commit "$2" && ! git_pull >/dev/null; then
     git_checkout "$2" >/dev/null \
       || return "$?"
   fi
