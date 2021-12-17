@@ -115,27 +115,27 @@ call_hook () {
 
 # $1 branch
 # $2 commit
-updateBranch () {
+update_branch () {
   # according to branch..
   case "$1" in
     $GFD_DEVELOP)
-      syncRepo "$GFD_DEVELOPDIR" "$2" \
+      sync_repo "$GFD_DEVELOPDIR" "$2" \
         || return $?
       ;;
     $GFD_RELEASE)
-      syncRepo "$GFD_RELEASEDIR" "$2" \
+      sync_repo "$GFD_RELEASEDIR" "$2" \
         || return $?
       ;;
     # support masterdir edit
     $GFD_MASTER)
-      syncRepo "$GFD_MASTERDIR" "$2" \
+      sync_repo "$GFD_MASTERDIR" "$2" \
         || return $?
       ;;
     *)
       # according to prefix, e.g. hofix from hotfix-aaa-bbb
       case "${1%%-*}" in
         $GFD_FEATUREPREFIX|$GFD_HOTFIXPREFIX)
-          syncRepo "$1" "$2" \
+          sync_repo "$1" "$2" \
             || return $?
           ;;
         # by default do nothing
@@ -146,7 +146,7 @@ updateBranch () {
 }
 
 # $1 tag
-updateStable () {
+update_stable () {
   local dirname
   dirname="$GFD_MASTERDIR"
 
@@ -158,30 +158,30 @@ updateStable () {
     dirname="${1#v}"
     dirname="${dirname%.*}"
     # also sync masterdir
-    syncRepo "$GFD_MASTERDIR" "$1" \
+    sync_repo "$GFD_MASTERDIR" "$1" \
       || return $?
   fi
 
   # sync..
-  syncRepo "$dirname" "$1" \
+  sync_repo "$dirname" "$1" \
     || return $?
 
   # update release iff release does not exists
   GIT_ROOT="$dirname"
   git_branch_exists "$GFD_RELEASE" \
-    || syncRepo "$GFD_RELEASEDIR" "$1" \
+    || sync_repo "$GFD_RELEASEDIR" "$1" \
     || return $?
 }
 
 # $1 folder name
 # $2 commit or tag
-syncRepo () {
+sync_repo () {
   local exit_code
 
   call_hook "pre-sync" "$1" \
     || return $?
 
-  doSyncRepo "$1" "$2"
+  do_sync_repo "$1" "$2"
   exit_code=$?
 
   call_hook "post-sync" "$1" \
@@ -193,7 +193,7 @@ syncRepo () {
 
 # $1 folder name
 # $2 commit or tag
-doSyncRepo () {
+do_sync_repo () {
   local ok do_fetch
 
   ok=" ..done"
@@ -274,11 +274,11 @@ github () {
 
   case "$ref" in
     refs/heads/*)
-      updateBranch "$refname" "$after" \
+      update_branch "$refname" "$after" \
         || return $?
       ;;
     refs/tags/*)
-      updateStable "$refname" \
+      update_stable "$refname" \
         || return $?
       ;;
     *)
@@ -315,11 +315,11 @@ bitbucket () {
     commit="$(echo "${changes[$index]}" | jq -r '.new.target.hash')"
     case "$type" in
       branch)
-        updateBranch "$name" "$commit" \
+        update_branch "$name" "$commit" \
           || return $?
         ;;
       tag)
-        updateStable "$name" \
+        update_stable "$name" \
           || return $?
         ;;
       *)
